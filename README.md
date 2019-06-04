@@ -1,5 +1,6 @@
 # VisualT
-a tiny scratch-like ascii graphic library i wrote in C when I was 16
+This is a tiny C library (+ editor) I wrote in C when I was 16.
+At the time I was in the 4th year of highschool, and we were switching to Java after a year of studying C.
 
 ```
 VisualT is a tiny game-oriented ascii graphic library
