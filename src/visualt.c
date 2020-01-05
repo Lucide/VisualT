@@ -1,35 +1,22 @@
 //Cavasin Riccardo
 
-#include "visualt.h"
+#include <visualt/visualt.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
 
-typedef struct CharMap {
-  uint32_t *chars;
-  unsigned int width, height;
-} CharMap;
+typedef struct CharMap CharMap;
 
-typedef struct Obj {
-  int x, y;
-  unsigned int length;
-  unsigned short penSize;
-  uint32_t penChar;
-  bool visible, pen;
-  CharMap *sprites, *currentSprite;
-} Obj;
+typedef struct Obj Obj;
 
-typedef struct Canvas {
-  struct CharMap mnaCanvas, penCanvas;
-  bool border;
-} Canvas;
+typedef struct Canvas Canvas;
 
 //----INTERNALs----
 #define vtPuts(STRING) fputs((STRING), stdout)
 
-#define vt32Puts(UINT32, LENGTH) fwrite((UINT32),sizeof(uint32_t),(LENGTH),stdout)
+#define vt32Puts(UINT32, LENGTH) fwrite((UINT32), sizeof(uint32_t), (LENGTH), stdout)
 
 #define vt32Putchar(UINT32) putchar((UINT32)>>0&0xffu);   \
                             putchar((UINT32)>>8&0xffu);   \
@@ -80,8 +67,10 @@ static void vtInitializeStringCharMap(CharMap *const charMap, const uint8_t *con
       } else if(utf8Text[i] >= 0xc0) { //2B code point: 110x xxxx
         charMap->chars[x+y*charMapWidth] = (uint32_t)utf8Text[i]|((uint32_t)utf8Text[i+1]<<8u);
         i += 2;
-      } else {                         //1B code point: 0xxx xxxx
-        charMap->chars[x+y*charMapWidth] = (uint32_t)utf8Text[i];
+      } else {
+        if(utf8Text[i] != '\n') {      //1B code point: 0xxx xxxx
+          charMap->chars[x+y*charMapWidth] = (uint32_t)utf8Text[i];
+        }
         i += 1;
       }
     }
@@ -98,7 +87,7 @@ static void vtPrintCharMap(const CharMap *const charMap, const bool border) {
       vtPuts("─");
     }
     vtPuts("─┐\n");
-    for(unsigned int y = 0; y < height; y += width) {
+    for(unsigned int y = 0; y < width*height; y += width) {
       vtPuts("│");
       vt32Puts(&chars[0+y], width);
       vtPuts("│\n");
@@ -109,7 +98,7 @@ static void vtPrintCharMap(const CharMap *const charMap, const bool border) {
     }
     vtPuts("─┘\n");
   } else {
-    for(unsigned int y = 0; y < height; y += width) {
+    for(unsigned int y = 0; y < width*height; y += width) {
       vtPuts("│");
       vt32Puts(&chars[0+y], width);
       vtPuts("│\n");
@@ -302,17 +291,16 @@ static void vtLine(const CharMap *const canvas, const unsigned short penSize, co
 //----MISC----
 void about() {
   printf("                 .:Visual T:.\n"
-         "            ver ");
+         "         ver ");
   puts("2.0.0  15 December 2019");
-  puts("               GNU LGPL-3.0\n"
+  puts("                 GNU LGPL-3.0\n"
        "\n"
-       " A text-based graphic library written by Lucide,\n"
-       " read the header file for additional information\n"
+       " A text-based graphic library written by Lucide\n"
        "\n"
        "       https://github.com/Lucide/VisualT\n"
        "\n"
        "\n"
-       "              In Memory of Simba\n"
+       "             In Memory of Simba\n"
   );
 }
 
@@ -427,12 +415,12 @@ void canvasBorder(Canvas *const canvas, const bool border) {
 }
 
 //----REFRESH----
-void draw(const Canvas *const canvas, const unsigned int objsLength, const Obj *const objs[const objsLength]) {
+void draw(const Canvas *const canvas, const unsigned int objsLength, const Obj *const *const objs) {
   vtRender(canvas, objsLength, objs);
   vtPrintCharMap(&canvas->mnaCanvas, canvas->border);
 }
 
-void drawToString(const Canvas *const canvas, const unsigned int objsLength, const Obj *const objs[const objsLength], unsigned int *const stringLength, uint8_t **const utf8Text) {
+void drawToString(const Canvas *const canvas, const unsigned int objsLength, const Obj *const *const objs, unsigned int *const stringLength, uint8_t **const utf8Text) {
   vtRender(canvas, objsLength, objs);
   vtPrintStringCharMap(&canvas->mnaCanvas, canvas->border, stringLength, utf8Text);
 }
@@ -596,7 +584,7 @@ void printAxes(const Canvas *const canvas) {
 
 void clearPen(const Canvas *const canvas) {
   for(unsigned int i = canvas->penCanvas.width*canvas->penCanvas.height; i-- > 0;) {
-    canvas->penCanvas.chars[i] = vt32EndiannessSwap((uint32_t)32);
+    canvas->penCanvas.chars[i] = (uint32_t)32;
   }
 }
 
@@ -679,7 +667,7 @@ void align(Obj *const obj, const unsigned char position) {
   }
 }
 
-bool isTouching(const Canvas *const canvas, const Obj *const obj, unsigned int objsLength, const struct Obj *const objs[const objsLength]) {
+bool isTouching(const Canvas *const canvas, const Obj *const obj, unsigned int objsLength, const struct Obj *const *const objs) {
   const CharMap *const mnaCanvas = &canvas->mnaCanvas, *const sprite = obj->currentSprite;
 
   if(obj->visible) {
