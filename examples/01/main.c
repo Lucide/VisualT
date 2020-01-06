@@ -15,7 +15,7 @@ int main(int argv, char **argc) {
 
   about();
   initializeCanvas(&canvas, 25, 10);
-  initializeStringObj(&textbox, (uint8_t *)"hi 👁\nhow are you?");
+  initializeStringObj(&textbox, (uint8_t *)"hi └\nhow are you?");
 
   draw(&canvas, 1, (Obj *[]){&textbox});
 

@@ -77,6 +77,7 @@ static void vtInitializeStringCharMap(CharMap *const charMap, const uint8_t *con
   }
 }
 
+#ifdef VISUALT_UNBUFFERED_PRINT
 static void vtPrintCharMap(const CharMap *const charMap, const bool border) {
   const unsigned int width = charMap->width, height = charMap->height;
   const uint32_t *const chars = charMap->chars;
@@ -105,8 +106,79 @@ static void vtPrintCharMap(const CharMap *const charMap, const bool border) {
     }
   }
 }
+#else
 
-static void vtPrintStringCharMap(const CharMap *const charMap, const bool border, unsigned int *const stringLength, uint8_t **const utf8Text) {
+static void vtPrintCharMap(const CharMap *const charMap, const bool border) {
+  const unsigned int width = charMap->width, height = charMap->height;
+  const uint32_t *const chars = charMap->chars;
+  uint8_t *t;
+  uint8_t *buffer = malloc(sizeof(uint8_t)+width*sizeof(uint32_t));
+
+  if(border) {
+    vtPuts("┌");
+    for(unsigned int x = 0; x < width-1; x++) {
+      vtPuts("─");
+    }
+    vtPuts("─┐\n");
+    for(unsigned y = 0; y < height; y++) {
+      for(unsigned int i = 0, x = 0; x < width; x++) {
+        t = (uint8_t *)&chars[x+y*width];
+        if(t[0] >= 0xf0) {  //4B code point: 1111 0xxx
+          buffer[i++] = t[0];
+          buffer[i++] = t[1];
+          buffer[i++] = t[2];
+          buffer[i++] = t[3];
+        } else if(t[0] >= 0xe0) { //3B code point: 1110 xxxx
+          buffer[i++] = t[0];
+          buffer[i++] = t[1];
+          buffer[i++] = t[2];
+        } else if(t[0] >= 0xc0) { //2B code point: 110x xxxx
+          buffer[i++] = t[0];
+          buffer[i++] = t[1];
+        } else {  //1B code point: 0xxx xxxx
+          buffer[i++] = t[0];
+        }
+        buffer[i] = '\0';
+      }
+      vtPuts("│");
+      vtPuts((char *)buffer);
+      vtPuts("│\n");
+    }
+    vtPuts("└");
+    for(unsigned int x = 0; x < width-1; x++) {
+      vtPuts("─");
+    }
+    vtPuts("─┘\n");
+  } else {
+    for(unsigned int y = 0; y < height; y++) {
+      for(unsigned int i = 0, x = 0; x < width; x++) {
+        t = (uint8_t *)&chars[x+y*width];
+        if(t[0] >= 0xf0) {  //4B code point: 1111 0xxx
+          buffer[i++] = t[0];
+          buffer[i++] = t[1];
+          buffer[i++] = t[2];
+          buffer[i++] = t[3];
+        } else if(t[0] >= 0xe0) { //3B code point: 1110 xxxx
+          buffer[i++] = t[0];
+          buffer[i++] = t[1];
+          buffer[i++] = t[2];
+        } else if(t[0] >= 0xc0) { //2B code point: 110x xxxx
+          buffer[i++] = t[0];
+          buffer[i++] = t[1];
+        } else {  //1B code point: 0xxx xxxx
+          buffer[i++] = t[0];
+        }
+        buffer[i] = '\0';
+      }
+      puts((char *)buffer);
+    }
+  }
+  free(buffer);
+}
+
+#endif
+
+static void vtPrintStringCharMap(const CharMap *const charMap, const bool border, unsigned int *const stringLength, uint8_t **const utf8String) {
   const unsigned int width = charMap->width, height = charMap->height;
   const uint32_t *const chars = charMap->chars;
   unsigned int i = 0;
@@ -131,70 +203,70 @@ static void vtPrintStringCharMap(const CharMap *const charMap, const bool border
     *stringLength += 3*((width+2)*2)+2+3*(2*height);
   }
 
-  *utf8Text = malloc(*stringLength*sizeof(uint8_t));
-  uint8_t *const text = *utf8Text;
+  *utf8String = malloc(*stringLength*sizeof(uint8_t));
+  uint8_t *const string = *utf8String;
 
   if(border) {
     i = *stringLength-2;
-    text[i--] = 0x98u;  //┘
-    text[i--] = 0x94u;  //┘
-    text[i--] = 0xe2u;  //┘
+    string[i--] = 0x98u;  //┘
+    string[i--] = 0x94u;  //┘
+    string[i--] = 0xe2u;  //┘
     for(unsigned int j = 0; j < width; j++) {
-      text[i--] = 0x80u;  //─
-      text[i--] = 0x94u;  //─
-      text[i--] = 0xe2u;  //─
+      string[i--] = 0x80u;  //─
+      string[i--] = 0x94u;  //─
+      string[i--] = 0xe2u;  //─
     }
-    text[i--] = 0x94u;  //└
-    text[i--] = 0x94u;  //└
-    text[i] = 0xe2u;    //└
+    string[i--] = 0x94u;  //└
+    string[i--] = 0x94u;  //└
+    string[i] = 0xe2u;    //└
     i = 0;
-    text[i++] = 0xe2u;  //┌
-    text[i++] = 0x94u;  //┌
-    text[i++] = 0x8cu;  //┌
+    string[i++] = 0xe2u;  //┌
+    string[i++] = 0x94u;  //┌
+    string[i++] = 0x8cu;  //┌
     for(unsigned int j = 0; j < width; j++) {
-      text[i++] = 0xe2u;  //─
-      text[i++] = 0x94u;  //─
-      text[i++] = 0x80u;  //─
+      string[i++] = 0xe2u;  //─
+      string[i++] = 0x94u;  //─
+      string[i++] = 0x80u;  //─
     }
-    text[i++] = 0xe2u;  //┐
-    text[i++] = 0x94u;  //┐
-    text[i++] = 0x90u;  //┐
-    text[i++] = '\n';
+    string[i++] = 0xe2u;  //┐
+    string[i++] = 0x94u;  //┐
+    string[i++] = 0x90u;  //┐
+    string[i++] = '\n';
   }
 
   for(unsigned int y = 0; y < height; y++) {
-    uint32_t t;
+    uint8_t *t; // uint32_t t;
     for(unsigned int x = 0; x < width; x++) {
       if(border) {
-        text[i++] = 0xe2u;  //│
-        text[i++] = 0x94u;  //│
-        text[i++] = 0x82u;  //│
+        string[i++] = 0xe2u;  //│
+        string[i++] = 0x94u;  //│
+        string[i++] = 0x82u;  //│
       }
-      t = chars[x+y*width];
-      if((t&0xffu) >= 0xf0) {        //4B code point: 1111 0xxx
-        text[i++] = (uint8_t)((t>>0u)&0xffu);
-        text[i++] = (uint8_t)((t>>8u)&0xffu);
-        text[i++] = (uint8_t)((t>>16u)&0xffu);
-        text[i++] = (uint8_t)((t>>24u)&0xffu);
-      } else if((t&0xffu) >= 0xe0) { //3B code point: 1110 xxxx
-        text[i++] = (uint8_t)((t>>0u)&0xffu);
-        text[i++] = (uint8_t)((t>>8u)&0xffu);
-        text[i++] = (uint8_t)((t>>16u)&0xffu);
-      } else if((t&0xffu) >= 0xc0) { //2B code point: 110x xxxx
-        text[i++] = (uint8_t)((t>>0u)&0xffu);
-        text[i++] = (uint8_t)((t>>8u)&0xffu);
+      t = (uint8_t *)&chars[x+y*width]; // t = chars[x+y*width];
+      if(t[0] >= 0xf0) {  // if((t&0xffu) >= 0xf0) {        //4B code point: 1111 0xxx
+        string[i++] = t[0]; // string[i++] = (uint8_t)((t>>0u)&0xffu);
+        string[i++] = t[1]; // string[i++] = (uint8_t)((t>>8u)&0xffu);
+        string[i++] = t[2]; // string[i++] = (uint8_t)((t>>16u)&0xffu);
+        string[i++] = t[3]; // string[i++] = (uint8_t)((t>>24u)&0xffu);
+      } else if(t[0] >= 0xe0) {  // } else if((t&0xffu) >= 0xe0) { //3B code point: 1110 xxxx
+        string[i++] = t[0]; // string[i++] = (uint8_t)((t>>0u)&0xffu);
+        string[i++] = t[1]; // string[i++] = (uint8_t)((t>>8u)&0xffu);
+        string[i++] = t[2]; // string[i++] = (uint8_t)((t>>16u)&0xffu);
+      } else if(t[0] >= 0xc0) {  // } else if((t&0xffu) >= 0xc0) { //2B code point: 110x xxxx
+        string[i++] = t[0]; // string[i++] = (uint8_t)((t>>0u)&0xffu);
+        string[i++] = t[1]; // string[i++] = (uint8_t)((t>>8u)&0xffu);
       } else {                       //1B code point: 0xxx xxxx
-        text[i++] = (uint8_t)((t>>0u)&0xffu);
+        string[i++] = t[0]; // string[i++] = (uint8_t)((t>>0u)&0xffu);
       }
     }
     if(border) {
-      text[i++] = 0xe2u;  //│
-      text[i++] = 0x94u;  //│
-      text[i++] = 0x82u;  //│
+      string[i++] = 0xe2u;  //│
+      string[i++] = 0x94u;  //│
+      string[i++] = 0x82u;  //│
     }
-    text[i++] = '\n';
+    string[i++] = '\n';
   }
-  text[*stringLength-1] = '\0';
+  string[*stringLength-1] = '\0';
 }
 
 static void vtStamp(const CharMap *const charMap, const CharMap *const sprite, int spriteX, int spriteY, const bool maskMode) {

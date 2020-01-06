@@ -6,6 +6,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+// #define VISUALT_UNBUFFERED_PRINT
+
 struct CharMap {
   uint32_t *chars;
   unsigned int width, height;
