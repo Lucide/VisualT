@@ -8,23 +8,27 @@
 
 // #define VISUALT_UNBUFFERED_PRINT
 
+#define VTSTR (uint8_t*)
+#define VTCHAR *(uint32_t *)
+#define VTOBJS (const Obj *[])
+
 struct CharMap {
-  uint32_t *chars;
-  unsigned int width, height;
+	uint32_t *chars;
+	unsigned int width, height;
 };
 
 struct Obj {
-  int x, y;
-  unsigned int length;
-  unsigned short penSize;
-  uint32_t penChar;
-  bool visible, pen;
-  struct CharMap *sprites, *currentSprite;
+	int x, y;
+	unsigned int length;
+	unsigned short penSize;
+	uint32_t penChar;
+	bool visible, pen;
+	struct CharMap *sprites, *currentSprite;
 };
 
 struct Canvas {
-  struct CharMap mnaCanvas, penCanvas;
-  bool border;
+	struct CharMap mnaCanvas, penCanvas;
+	bool border;
 };
 
 //----MISC----
@@ -73,9 +77,9 @@ void stamp(const struct Canvas *canvas, const struct Obj *obj);
 void penFill(const struct Canvas *canvas, uint32_t fillChar);
 void penShift(const struct Canvas *canvas, unsigned char direction);
 void printAxes(const struct Canvas *canvas);
-void clearPen(const struct Canvas *canvas);
+void penClear(const struct Canvas *canvas);
 //----MOVE----
-int xPostion(const struct Obj *obj);
+int xPosition(const struct Obj *obj);
 int yPosition(const struct Obj *obj);
 void moveTo(const struct Canvas *canvas, struct Obj *obj, int x, int y);
 void setX(const struct Canvas *canvas, struct Obj *obj, int x);
