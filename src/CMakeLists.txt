@@ -11,7 +11,7 @@ add_library(visualt visualt.c ${HEADER_LIST})
 # We need this directory, and users of our library will need it too
 target_include_directories(visualt PUBLIC ../include)
 
-# All users of this library will need at least C++11
+# All users of this library will need at least C99
 target_compile_features(visualt PUBLIC c_std_99)
 
 # IDEs should put the headers in a nice place

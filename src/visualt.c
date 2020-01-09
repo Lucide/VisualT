@@ -1,5 +1,3 @@
-//Cavasin Riccardo
-
 #include <visualt/visualt.h>
 
 #include <stdio.h>
@@ -29,6 +27,8 @@ typedef struct Canvas Canvas;
                               (OBJ)->y = 0;           \
                               (OBJ)->visible = true;  \
                               (OBJ)->pen = false;     \
+                              (OBJ)->penSize = 1;     \
+                              (OBJ)->penChar = '#';   \
                               (OBJ)->currentSprite = (OBJ)->sprites
 
 #define vtInitializeCharMap(CHARMAP, WIDTH, HEIGHT) (CHARMAP)->width = (WIDTH);   \
@@ -78,7 +78,11 @@ static void vtInitializeStringCharMap(CharMap *const charMap, const uint8_t *con
 				t[1] = utf8Text[i++];
 			} else {                          //1B code point: 0xxx xxxx
 				if(utf8Text[i] != '\n' && utf8Text[i] != '\0') {
-					t[0] = utf8Text[i++];
+					if(utf8Text[i] != '\v') {
+						t[0] = utf8Text[i++];
+					} else {
+						t[0] = utf8Text[i++]&&0;
+					}
 				} else {
 					for(; x < charMapWidth; x++) {
 						charMap->chars[x+y*charMapWidth] = 0;
@@ -425,7 +429,7 @@ void initializeFileObj(Obj *const obj, const char path[const]) {
 	FILE *const file = fopen(path, "r");
 
 	if(file) {
-		while(fscanf(file, "%*" SCNu32)) {
+		while(fscanf(file, "%*" SCNu32) != EOF) { // NOLINT(cert-err34-c)
 			vLength++;
 		}
 		v = malloc(vLength*sizeof(uint32_t));
@@ -434,6 +438,12 @@ void initializeFileObj(Obj *const obj, const char path[const]) {
 			fscanf(file, "%" SCNu32, &v[i]); // NOLINT(cert-err34-c)
 		}
 		fclose(file);
+
+		// for(unsigned int i = 0; i < vLength; i++) {
+		// 	printf("%" PRIu32 " ", vt32EndiannessSwap(v[i]));
+		// }
+		// putchar('\n');
+
 		initializeArrayObj(obj, v);
 		free(v);
 	}
@@ -725,25 +735,25 @@ void align(Obj *const obj, const unsigned char position) {
 		default:
 		case 0: //top-left
 			obj->x += (int)(obj->currentSprite->width/2);
-			obj->y += (int)(obj->currentSprite->height/2);
+			obj->y -= (int)(obj->currentSprite->height/2);
 			break;
 		case 1: //top-right
 			obj->x -= (int)(obj->currentSprite->width/2);
-			obj->y += (int)(obj->currentSprite->height/2);
+			obj->y -= (int)(obj->currentSprite->height/2);
 			if(obj->currentSprite->width%2 == 0) {
 				obj->x++;
 			}
 			break;
 		case 2: //bottom-left
 			obj->x += (int)(obj->currentSprite->width/2);
-			obj->y -= (int)(obj->currentSprite->height/2);
+			obj->y += (int)(obj->currentSprite->height/2);
 			if(obj->currentSprite->height%2 == 0) {
 				obj->y--;
 			}
 			break;
 		case 3: //bottom-right
 			obj->x -= (int)(obj->currentSprite->width/2);
-			obj->y -= (int)(obj->currentSprite->height/2);
+			obj->y += (int)(obj->currentSprite->height/2);
 			if(obj->currentSprite->width%2 == 0) {
 				obj->x--;
 			}

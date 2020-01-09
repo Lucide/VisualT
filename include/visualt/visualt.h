@@ -1,7 +1,5 @@
-//Cavasin Riccardo
-
-#ifndef VISUALT_H
-#define VISUALT_H
+#ifndef VISUALT_INCLUDE_VISUALT_VISUALT_H_
+#define VISUALT_INCLUDE_VISUALT_VISUALT_H_
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -18,12 +16,12 @@ struct CharMap {
 };
 
 struct Obj {
+	struct CharMap *sprites, *currentSprite;
+	uint32_t penChar;
 	int x, y;
 	unsigned int length;
 	unsigned short penSize;
-	uint32_t penChar;
 	bool visible, pen;
-	struct CharMap *sprites, *currentSprite;
 };
 
 struct Canvas {
