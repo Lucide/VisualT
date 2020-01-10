@@ -21,13 +21,12 @@ int main(int argc, char **argv) {
 	help(&info, 1);
 	draw(&canvas, 2, VTOBJS{&info, &cat}); //render the scene with the cat i just loaded
 
-	moveTo(&canvas, &cat, 35, 0); //move the cat to x:35 y:0
+	moveTo(NULL, &cat, 35, 0); //move the cat to x:35 y:0
 
 	help(&info, 2);
 	draw(&canvas, 2, VTOBJS{&info, &cat}); //refresh the screen
 
-
-	initializeStringObj(&textBox, VTSTR "textBox"); //create a new textbox
+	initializeStringObj(&textBox, 1, VTSTRS{"textBox"}); //create a new textbox
 
 	help(&info, 3);
 	draw(&canvas, 3, VTOBJS{&info, &cat, &textBox});
@@ -37,14 +36,13 @@ int main(int argc, char **argv) {
 	help(&info, 4);
 	draw(&canvas, 3, VTOBJS{&info, &cat, &textBox}); //refresh the screen
 
-	setX(&canvas, &textBox, -30); //set tbox's x position to -30
+	setX(NULL, &textBox, -30); //set tbox's x position to -30
 
 	help(&info, 5);
 	draw(&canvas, 3, VTOBJS{&info, &cat, &textBox});
 
-	penDown(&cat); //enable cat's pen by default the size is set to 1 and the character  to '#'
 	setPenSize(&cat, 5); //set the pen size to 5 you can set a size between 1 and 6
-	changeX(&canvas, &cat, -40); //change cat's x position by -40
+	changeX(&canvas, &cat, -40); //change cat's x position by -40 with pen
 
 	help(&info, 6);
 	draw(&canvas, 3, VTOBJS{&info, &cat, &textBox});
@@ -54,8 +52,7 @@ int main(int argc, char **argv) {
 	help(&info, 7);
 	draw(&canvas, 3, VTOBJS{&info, &cat, &textBox});
 
-	penUp(&cat); //disable cat's pen
-	moveTo(&canvas, &cat, xPosition(&textBox), yPosition(&textBox)); //move cat to tbox's x and y position
+	moveTo(NULL, &cat, xPosition(&textBox), yPosition(&textBox)); //move cat to tbox's x and y position
 	show(&cat); //show the cat
 
 	help(&info, 8);
@@ -68,13 +65,13 @@ int main(int argc, char **argv) {
 
 	for(unsigned int i = 0; i < 5; i++) {
 		stamp(&canvas, &cat);
-		changeX(&canvas, &cat, 10);
+		changeX(NULL, &cat, 10);
 	} //a cycle where the cat stamps on the stage and moves right by 10
 
 	help(&info, 10);
 	draw(&canvas, 3, VTOBJS{&info, &cat, &textBox});
 
-	changeX(&canvas, &cat, 15); //move the cat again
+	changeX(NULL, &cat, 15); //move the cat again
 
 	help(&info, 11);
 	draw(&canvas, 3, VTOBJS{&info, &cat, &textBox});
@@ -85,7 +82,7 @@ int main(int argc, char **argv) {
 	draw(&canvas, 3, VTOBJS{&info, &cat, &textBox});
 
 	hide(&info);
-	changeX(&canvas, &textBox, 20);
+	changeX(NULL, &textBox, 20);
 	setSpriteText(&textBox, VTSTR "                    Thank You!\nstay in touch for more tutorials and demo projects");
 	getch();
 
@@ -106,7 +103,7 @@ void help(Obj *info, const int i) {
 	switch(i) {
 		default:
 		case 0:
-			initializeStringObj(info, VTSTR "info");
+			initializeStringObj(info, 1, VTSTRS{"info"});
 			puts("Press any key to start...");
 			return;
 		case 1:

@@ -7,8 +7,11 @@ project(visualt
         DESCRIPTION "a text-based graphic library"
         LANGUAGES C)
 
-# The compiled library code is here
+# library code is here
 add_subdirectory(src)
 
-# The examples' code is here
+# examples are here
 add_subdirectory(examples)
+
+# tests and resources are here
+add_subdirectory(res)

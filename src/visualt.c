@@ -26,7 +26,6 @@ typedef struct Canvas Canvas;
 #define vtInitializeObj(OBJ)  (OBJ)->x = 0;           \
                               (OBJ)->y = 0;           \
                               (OBJ)->visible = true;  \
-                              (OBJ)->pen = false;     \
                               (OBJ)->penSize = 1;     \
                               (OBJ)->penChar = '#';   \
                               (OBJ)->currentSprite = (OBJ)->sprites
@@ -81,7 +80,7 @@ static void vtInitializeStringCharMap(CharMap *const charMap, const uint8_t *con
 					if(utf8Text[i] != '\v') {
 						t[0] = utf8Text[i++];
 					} else {
-						t[0] = utf8Text[i++]&&0;
+						t[0] = utf8Text[i++] && 0;
 					}
 				} else {
 					for(; x < charMapWidth; x++) {
@@ -196,36 +195,38 @@ static void vtPrintCharMap(const CharMap *const charMap, const bool border) {
 
 #endif
 
-static void vtPrintStringCharMap(const CharMap *const charMap, const bool border, unsigned int *const stringLength, uint8_t **const utf8String) {
+static unsigned int vtPrintStringCharMap(const CharMap *const charMap, const bool border, uint8_t **const utf8String) {
 	const unsigned int width = charMap->width, height = charMap->height;
 	const uint32_t *const chars = charMap->chars;
-	unsigned int i = 0;
+	const uint8_t *t;
+	unsigned int length = 0, i = 0;
 
-	*stringLength = 0;
-	for(unsigned int y = 0; y < height; (*stringLength)++, y++) {
-		uint32_t t;
+	for(unsigned int y = 0; y < height; length++, y++) {
 		for(unsigned int x = 0; x < width; x++) {
-			t = chars[x+y*width]&0xffu;
-			if(t >= 0xf0) {        //4B code point: 1111 0xxx
-				*stringLength += 4;
-			} else if(t >= 0xe0) { //3B code point: 1110 xxxx
-				*stringLength += 3;
-			} else if(t >= 0xc0) { //2B code point: 110x xxxx
-				*stringLength += 2;
+			t = (uint8_t *)&chars[x+y*width];
+			if(t[0] >= 0xf0) {        //4B code point: 1111 0xxx
+				length += 4;
+			} else if(t[0] >= 0xe0) { //3B code point: 1110 xxxx
+				length += 3;
+			} else if(t[0] >= 0xc0) { //2B code point: 110x xxxx
+				length += 2;
 			} else {               //1B code point: 0xxx xxxx
-				*stringLength += 1;
+				length += 1;
 			}
 		}
 	}
 	if(border) {
-		*stringLength += 3*((width+2)*2)+2+3*(2*height);
+		length += (
+				3*((width+2)*2+(2*height)) //first and last row + │ for every line
+						+2 //first \n and last \0
+		)*sizeof(uint8_t);
 	}
 
-	*utf8String = malloc(*stringLength*sizeof(uint8_t));
+	*utf8String = malloc(length*sizeof(uint8_t));
 	uint8_t *const string = *utf8String;
 
 	if(border) {
-		i = *stringLength-2;
+		i = length-2;
 		string[i--] = 0x98u;  //┘
 		string[i--] = 0x94u;  //┘
 		string[i--] = 0xe2u;  //┘
@@ -251,15 +252,13 @@ static void vtPrintStringCharMap(const CharMap *const charMap, const bool border
 		string[i++] = 0x90u;  //┐
 		string[i++] = '\n';
 	}
-
 	for(unsigned int y = 0; y < height; y++) {
-		uint8_t *t; // uint32_t t;
+		if(border) {
+			string[i++] = 0xe2u;  //│
+			string[i++] = 0x94u;  //│
+			string[i++] = 0x82u;  //│
+		}
 		for(unsigned int x = 0; x < width; x++) {
-			if(border) {
-				string[i++] = 0xe2u;  //│
-				string[i++] = 0x94u;  //│
-				string[i++] = 0x82u;  //│
-			}
 			t = (uint8_t *)&chars[x+y*width]; // t = chars[x+y*width];
 			if(t[0] >= 0xf0) { //4B code point: 1111 0xxx
 				string[i++] = t[0];
@@ -284,7 +283,8 @@ static void vtPrintStringCharMap(const CharMap *const charMap, const bool border
 		}
 		string[i++] = '\n';
 	}
-	string[*stringLength-1] = '\0';
+	string[length-1] = '\0';
+	return length;
 }
 
 static void vtStamp(const CharMap *const charMap, const CharMap *const sprite, int spriteX, int spriteY, const bool maskMode) {
@@ -449,10 +449,12 @@ void initializeFileObj(Obj *const obj, const char path[const]) {
 	}
 }
 
-void initializeStringObj(Obj *const obj, const uint8_t *const utf8Text) {
-	obj->length = 1;
-	obj->sprites = malloc(sizeof(CharMap));
-	vtInitializeStringCharMap(obj->sprites, utf8Text);
+void initializeStringObj(Obj *const obj, unsigned int spritesLength, const uint8_t *const *const utf8String) {
+	obj->length = spritesLength;
+	obj->sprites = malloc(spritesLength*sizeof(CharMap));
+	for(unsigned int i = 0; i < spritesLength; i++) {
+		vtInitializeStringCharMap(&obj->sprites[i], utf8String[i]);
+	}
 	vtInitializeObj(obj);
 }
 
@@ -517,9 +519,9 @@ void draw(const Canvas *const canvas, const unsigned int objsLength, const Obj *
 	vtPrintCharMap(&canvas->mnaCanvas, canvas->border);
 }
 
-void drawToString(const Canvas *const canvas, const unsigned int objsLength, const Obj *const *const objs, unsigned int *const stringLength, uint8_t **const utf8Text) {
+unsigned int drawToString(const Canvas *const canvas, const unsigned int objsLength, const Obj *const *const objs, uint8_t **const utf8String) {
 	vtRender(canvas, objsLength, objs);
-	vtPrintStringCharMap(&canvas->mnaCanvas, canvas->border, stringLength, utf8Text);
+	return vtPrintStringCharMap(&canvas->mnaCanvas, canvas->border, utf8String);
 }
 
 //----TEXT----
@@ -573,10 +575,6 @@ void setVisible(Obj *const obj, const bool visible) {
 }
 
 //----PEN----
-bool isPen(const Obj *const obj) {
-	return obj->pen;
-}
-
 uint32_t penChar(const Obj *const obj) {
 	return obj->penChar;
 }
@@ -586,23 +584,11 @@ unsigned short penSize(const Obj *const obj) {
 }
 
 void setPenSize(Obj *const obj, const unsigned short size) {
-	obj->penSize = size < 7 ? size : (unsigned short)6;
+	obj->penSize = size <= 5 ? size : (unsigned short)5;
 }
 
 void setPenChar(Obj *const obj, const uint32_t penChar) {
 	obj->penChar = penChar;
-}
-
-void penUp(Obj *const obj) {
-	obj->pen = false;
-}
-
-void penDown(Obj *const obj) {
-	obj->pen = true;
-}
-
-void setPen(Obj *const obj, const bool pen) {
-	obj->pen = pen;
 }
 
 void stamp(const Canvas *const canvas, const Obj *const obj) {
@@ -695,7 +681,7 @@ int yPosition(const Obj *const obj) {
 }
 
 void moveTo(const Canvas *const canvas, Obj *const obj, const int x, const int y) {
-	if(obj->pen) {
+	if(canvas) {
 		vtLine(&canvas->penCanvas, obj->penSize, obj->penChar, obj->x, obj->y, x, y);
 	}
 	obj->x = x;
@@ -703,31 +689,31 @@ void moveTo(const Canvas *const canvas, Obj *const obj, const int x, const int y
 }
 
 void setX(const Canvas *const canvas, Obj *const obj, int x) {
-	if(obj->pen) {
+	if(canvas) {
 		vtLine(&canvas->penCanvas, obj->penSize, obj->penChar, obj->x, obj->y, x, obj->y);
 	}
 	obj->x = x;
 }
 
 void setY(const Canvas *const canvas, Obj *const obj, int y) {
-	if(obj->pen) {
+	if(canvas) {
 		vtLine(&canvas->penCanvas, obj->penSize, obj->penChar, obj->x, obj->y, obj->x, y);
 	}
 	obj->y = y;
 }
 
 void changeX(const Canvas *const canvas, Obj *const obj, const int x) {
-	if(obj->pen) {
+	if(canvas) {
 		vtLine(&canvas->penCanvas, obj->penSize, obj->penChar, obj->x, obj->y, obj->x+x, obj->y);
 	}
 	obj->x += x;
 }
 
 void changeY(const Canvas *const canvas, Obj *const obj, const int y) {
-	if(obj->pen) {
+	if(canvas) {
 		vtLine(&canvas->penCanvas, obj->penSize, obj->penChar, obj->x, obj->y, obj->x, obj->y-y);
 	}
-	obj->y -= y;
+	obj->y += y;
 }
 
 void align(Obj *const obj, const unsigned char position) {
@@ -755,7 +741,7 @@ void align(Obj *const obj, const unsigned char position) {
 			obj->x -= (int)(obj->currentSprite->width/2);
 			obj->y += (int)(obj->currentSprite->height/2);
 			if(obj->currentSprite->width%2 == 0) {
-				obj->x--;
+				obj->x++;
 			}
 			if(obj->currentSprite->height%2 == 0) {
 				obj->y--;
@@ -766,10 +752,10 @@ void align(Obj *const obj, const unsigned char position) {
 
 bool isTouching(const Canvas *const canvas, const Obj *const obj, unsigned int objsLength, const struct Obj *const *const objs) {
 	const CharMap *const mnaCanvas = &canvas->mnaCanvas, *const sprite = obj->currentSprite;
+	int spriteX, spriteY;
 
 	if(obj->visible) {
-		int spriteX, spriteY;
-		memset(mnaCanvas->chars, '\0', mnaCanvas->width*mnaCanvas->height*sizeof(uint32_t));
+		memset(mnaCanvas->chars, 0, mnaCanvas->width*mnaCanvas->height*sizeof(uint32_t));
 		for(unsigned int i = 0; i < objsLength; i++) {
 			if(objs[i]->visible) {
 				vtStamp(mnaCanvas, objs[i]->currentSprite, objs[i]->x, objs[i]->y, true);
@@ -778,7 +764,7 @@ bool isTouching(const Canvas *const canvas, const Obj *const obj, unsigned int o
 		vtNormalizePosition(mnaCanvas, sprite, obj->x, obj->y, spriteX, spriteY);
 		for(unsigned int y = 0; y < sprite->height; y++) {
 			for(unsigned int x = 0; x < sprite->width; x++) {
-				if(sprite->chars[x+y*sprite->width] && spriteX+x >= 0 && spriteX+x < mnaCanvas->width && spriteY+y >= 0 && spriteY+y < mnaCanvas->height && !mnaCanvas->chars[(spriteX+x)+(spriteY+y)*mnaCanvas->width]) {
+				if(sprite->chars[x+y*sprite->width] && spriteX+x >= 0 && spriteX+x < mnaCanvas->width && spriteY+y >= 0 && spriteY+y < mnaCanvas->height && mnaCanvas->chars[(spriteX+x)+(spriteY+y)*mnaCanvas->width]) {
 					return true;
 				}
 			}
@@ -788,15 +774,14 @@ bool isTouching(const Canvas *const canvas, const Obj *const obj, unsigned int o
 }
 
 bool isTouchingChar(const Canvas *const canvas, const Obj *const obj, const uint32_t character) {
-	const CharMap *const mnaCanvas = &canvas->mnaCanvas, *const sprite = obj->currentSprite;
+	const CharMap *const penCanvas = &canvas->penCanvas, *const sprite = obj->currentSprite;
+	int spriteX, spriteY;
 
 	if(obj->visible) {
-		int spriteX, spriteY;
-		memcpy(mnaCanvas->chars, canvas->penCanvas.chars, vtSizeofChars(mnaCanvas));
-		vtNormalizePosition(mnaCanvas, sprite, obj->x, obj->y, spriteX, spriteY);
+		vtNormalizePosition(penCanvas, sprite, obj->x, obj->y, spriteX, spriteY);
 		for(unsigned int y = 0; y < sprite->height; y++) {
 			for(unsigned int x = 0; x < sprite->width; x++) {
-				if(sprite->chars[x+y*sprite->width] && spriteX+x >= 0 && spriteX+x < mnaCanvas->width && spriteY+y >= 0 && spriteY+y < mnaCanvas->height && mnaCanvas->chars[(spriteX+x)+(spriteY+y)*mnaCanvas->width] == character) {
+				if(sprite->chars[x+y*sprite->width] && spriteX+x >= 0 && spriteX+x < penCanvas->width && spriteY+y >= 0 && spriteY+y < penCanvas->height && penCanvas->chars[(spriteX+x)+(spriteY+y)*penCanvas->width] == character) {
 					return true;
 				}
 			}
@@ -807,10 +792,9 @@ bool isTouchingChar(const Canvas *const canvas, const Obj *const obj, const uint
 
 bool isOutside(const Canvas *const canvas, const Obj *const obj) {
 	const CharMap *const mnaCanvas = &canvas->mnaCanvas, *const sprite = obj->currentSprite;
+	int spriteX, spriteY;
 
 	if(obj->visible) {
-		int spriteX, spriteY;
-		memcpy(mnaCanvas->chars, canvas->penCanvas.chars, vtSizeofChars(mnaCanvas));
 		vtNormalizePosition(mnaCanvas, sprite, obj->x, obj->y, spriteX, spriteY);
 		for(unsigned int y = 0; y < sprite->height; y++) {
 			for(unsigned int x = 0; x < sprite->width; x++) {

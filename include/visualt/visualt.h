@@ -6,9 +6,10 @@
 
 // #define VISUALT_UNBUFFERED_PRINT
 
-#define VTSTR (uint8_t*)
-#define VTCHAR *(uint32_t *)
-#define VTOBJS (const Obj *[])
+#define VTSTR (const uint8_t*)
+#define VTSTRS (const uint8_t *const *)(const char *const [])
+#define VTCHAR *(uint32_t *const)
+#define VTOBJS (const Obj *const [])
 
 struct CharMap {
 	uint32_t *chars;
@@ -21,7 +22,7 @@ struct Obj {
 	int x, y;
 	unsigned int length;
 	unsigned short penSize;
-	bool visible, pen;
+	bool visible;
 };
 
 struct Canvas {
@@ -35,7 +36,7 @@ void about();
 void initializeCanvas(struct Canvas *canvas, unsigned int width, unsigned int height);
 void initializeArrayObj(struct Obj *obj, const uint32_t *v);
 void initializeFileObj(struct Obj *obj, const char path[const]);
-void initializeStringObj(struct Obj *obj, const uint8_t *utf8Text);
+void initializeStringObj(struct Obj *obj, unsigned int spritesLength, const uint8_t *const *utf8Text);
 void deleteCanvas(const struct Canvas *canvas);
 void deleteObj(const struct Obj *obj);
 void cloneCanvas(struct Canvas *dest, const struct Canvas *src);
@@ -47,7 +48,7 @@ unsigned int canvasHeight(const struct Canvas *canvas);
 void canvasBorder(struct Canvas *canvas, bool border);
 //----REFRESH----
 void draw(const struct Canvas *canvas, unsigned int objsLength, const struct Obj *const *objs);
-void drawToString(const struct Canvas *canvas, unsigned int objsLength, const struct Obj *const *objs, unsigned int *stringLength, uint8_t **utf8Text);
+unsigned int drawToString(const struct Canvas *canvas, unsigned int objsLength, const struct Obj *const *objs, uint8_t **utf8String);
 //----TEXT----
 void setSpriteText(struct Obj *obj, const uint8_t *utf8Text);
 //----SPRITE----
@@ -63,14 +64,10 @@ void show(struct Obj *obj);
 void hide(struct Obj *obj);
 void setVisible(struct Obj *obj, bool visible);
 //----PEN----
-bool isPen(const struct Obj *obj);
 uint32_t penChar(const struct Obj *obj);
 unsigned short penSize(const struct Obj *obj);
 void setPenSize(struct Obj *obj, unsigned short size);
 void setPenChar(struct Obj *obj, uint32_t penChar);
-void penUp(struct Obj *obj);
-void penDown(struct Obj *obj);
-void setPen(struct Obj *obj, bool pen);
 void stamp(const struct Canvas *canvas, const struct Obj *obj);
 void penFill(const struct Canvas *canvas, uint32_t fillChar);
 void penShift(const struct Canvas *canvas, unsigned char direction);
