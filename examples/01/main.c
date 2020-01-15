@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
 	help(&info, 8);
 	draw(&canvas, 3, VTOBJS{&info, &cat, &textBox});
 
-	penClear(&canvas); //empty the pen layer
+	clear(&canvas); //empty the pen layer
 
 	help(&info, 9);
 	draw(&canvas, 3, VTOBJS{&info, &cat, &textBox});
@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
 	help(&info, 11);
 	draw(&canvas, 3, VTOBJS{&info, &cat, &textBox});
 
-	penClear(&canvas); //clear the pen layer
+	clear(&canvas); //clear the pen layer
 
 	help(&info, 12);
 	draw(&canvas, 3, VTOBJS{&info, &cat, &textBox});

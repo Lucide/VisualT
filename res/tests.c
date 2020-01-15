@@ -9,9 +9,8 @@ typedef struct Obj Obj;
 
 void penTest(const char penChar[const]) {
 	puts("pen stroke test:");
-	Canvas canvas;
-	Obj p;
-	initializeCanvas(&canvas, 100, 20);
+	Obj penLayer, p;
+	initializeBlankObj(&penLayer, 1, VTSIZES{{100, 20}});
 	initializeStringObj(&p, 1, VTSTRS{"p"});
 	setPenChar(&p, VTCHAR penChar);
 
@@ -19,32 +18,32 @@ void penTest(const char penChar[const]) {
 	for(unsigned int penSize = 0; penSize <= 5; penSize++) {
 		changeX(NULL, &p, 13);
 		setPenSize(&p, penSize);
-		changeX(&canvas, &p, 0);
+		changeX(&penLayer, &p, 0);
 	}
 
 	moveTo(NULL, &p, -46, -2);
 	for(unsigned int i = 0; i <= 13; i++) {
-		setPenSize(&p, (short)((double)i/11*5));
-		changeX(&canvas, &p, 5);
+		setPenSize(&p, (unsigned short)((double)i/11*5));
+		changeX(&penLayer, &p, 5);
 	}
 
 	moveTo(NULL, &p, 40, 7);
 	for(unsigned int i = 0; i <= 7; i++) {
-		setPenSize(&p, (short)((double)i/7*5));
-		changeY(&canvas, &p, -2);
+		setPenSize(&p, (unsigned short)(short)((double)i/7*5));
+		changeY(&penLayer, &p, -2);
 	}
 
-	draw(&canvas, 0, NULL);
-	deleteCanvas(&canvas);
+	// draw(&canvas, 0, NULL);
+	print(&penLayer, true);
+	deleteObj(&penLayer);
 	deleteObj(&p);
 	puts("ok");
 }
 
 void alignTest() {
 	puts("align test:");
-	Canvas canvas;
-	Obj target, viewfinder;
-	initializeCanvas(&canvas, 60, 10);
+	Obj canvas, target, viewfinder;
+	initializeBlankObj(&canvas, 1, VTSIZES{{60, 10}});
 	initializeStringObj(&target, 1, VTSTRS{"0"});
 	initializeStringObj(&viewfinder, 1, VTSTRS{"██\n██"});
 
@@ -166,103 +165,117 @@ void alignTest() {
 	stamp(&canvas, &viewfinder);
 	stamp(&canvas, &target);
 
-	draw(&canvas, 0, NULL);
+	print(&canvas, true);
 
 	deleteObj(&viewfinder);
 	deleteObj(&target);
-	deleteCanvas(&canvas);
+	deleteObj(&canvas);
 	puts("ok");
 }
 
 void drawToStringTest() {
 	puts("draw to string test:");
-	Canvas canvas;
-	Obj a, b;
+	Obj canvas, a, b;
 	unsigned int length;
 	unsigned char *s;
 
-	initializeCanvas(&canvas, 60, 16);
+	initializeBlankObj(&canvas, 2, VTSIZES{{60, 16},
+	                                       {60, 16}});
 	initializeStringObj(&a, 1, VTSTRS{"▀▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀\n▄▀─▄▀─▄▀─▄▀─▄▀─▄▀─▄▀─▄\n▀─▄▀─▄▀─▄▀─▄▀─▄▀─▄▀─▄▀\n▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀▄\n▀▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀\n▄▀─▄▀─▄▀─▄▀─▄▀"});
 	initializeStringObj(&b, 2, VTSTRS{"║█║█║║█║█║█║║█║█║║█║█║█\n║█║█║║█║█║█║║█║█║║█║█║█\n║║║║║║║║║║║║║║║║║║║║║║║\n╚╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩", "\v\v\v\v\v\v\v\v\v\v\v\v╭━━━\n\v\v\v╭━━╮\v\v\v\v\v┃RAWR\n\v\v╭╯┊◣╰━━━╮\v╰┳━━\n\v\v┃┊┊┊╱▽▽▽┛\v\v┃\v\v\n\v\v┃┊┊┊▏━━━━━━╯\v\v\n━━╯┊┊┊╲△△△┓\v\v\v\v\v\n┊┊┊┊╭━━━━━╯\v\v\v\v\v"});
 	moveTo(NULL, &a, -10, 3);
 	moveTo(NULL, &b, -14, -3);
+
+	setSprite(&canvas, 1);
 	stamp(&canvas, &b);
+	setSprite(&canvas, 0);
+
 	nextSprite(&b);
 	changeX(NULL, &b, 30);
 
-	length = drawToString(&canvas, 2, VTOBJS{&a, &b}, &s);
+	draw(&canvas, 2, VTOBJS{&a, &b});
+	overlay(&canvas, 1, &canvas, 0);
+	setSprite(&canvas, 1);
+
+	length = printToString(&canvas, true, &s);
 	printf("length: %d\n%s\n", length, s);
 	free(s);
-	canvasBorder(&canvas, false);
-	length = drawToString(&canvas, 2, VTOBJS{&a, &b}, &s);
+	length = printToString(&canvas, false, &s);
 	printf("length: %d\n%s\n", length, s);
 	free(s);
 
 	deleteObj(&b);
 	deleteObj(&a);
-	deleteCanvas(&canvas);
+	deleteObj(&canvas);
 	puts("ok");
 }
 
 void collisionTest() {
 	puts("collision test:");
-	Canvas canvas;
-	Obj a, b;
+	Obj canvas, penLayer, a, b;
 
-	initializeCanvas(&canvas, 60, 16);
+	initializeBlankObj(&canvas, 1, VTSIZES{{60, 16}});
+	initializeBlankObj(&penLayer, 1, VTSIZES{{60, 16}});
 	initializeStringObj(&a, 1, VTSTRS{"|░░░░|\n\\░░░░/"});
 	initializeStringObj(&b, 1, VTSTRS{"\v\v\v____\n\v.'\v\v\v\v`.\n/\v\v\v\v\v\v\v\v\\\n|\v\v\v\v\v\v\v\v|\n\\\v\v\v\v\v\v\v\v/\n\v`.____.'"});
 
 	setPenSize(&a, 2);
 	setPenChar(&a, VTCHAR "░");
 	moveTo(NULL, &a, 18, 6);
-	moveTo(&canvas, &a, 18, -6);
+	moveTo(&penLayer, &a, 18, -6);
 
-	draw(&canvas, 2, VTOBJS{&a, &b});
+	draw(&canvas, 3, VTOBJS{&penLayer, &a, &b});
+	print(&canvas, true);
 	printf("isTouching(&canvas, &b, 1, VTOBJS{&a})=%d\n", isTouching(&canvas, &b, 1, VTOBJS{&a}));
-	printf("isTouchingChar(&canvas, &b, VTCHAR \"░\")=%d\n", isTouchingChar(&canvas, &b, VTCHAR "░"));
+	printf("isTouchingChar(&canvas, &b, VTCHAR \"░\")=%d\n", isTouchingChar(&penLayer, &b, VTCHAR "░"));
 	printf("isOutside(&canvas,&b)=%d\n", isOutside(&canvas, &b));
 
 	setX(NULL, &b, 18);
 
-	draw(&canvas, 2, VTOBJS{&a, &b});
+	draw(&canvas, 3, VTOBJS{&penLayer,&a, &b});
+	print(&canvas, true);
 	printf("isTouching(&canvas, &b, 1, VTOBJS{&a})=%d\n", isTouching(&canvas, &b, 1, VTOBJS{&a}));
-	printf("isTouchingChar(&canvas, &b, VTCHAR \"░\")=%d\n", isTouchingChar(&canvas, &b, VTCHAR "░"));
+	printf("isTouchingChar(&canvas, &b, VTCHAR \"░\")=%d\n", isTouchingChar(&penLayer, &b, VTCHAR "░"));
 	printf("isOutside(&canvas,&b)=%d\n", isOutside(&canvas, &b));
 
 	setY(NULL, &b, -5);
 
-	draw(&canvas, 2, VTOBJS{&a, &b});
+	draw(&canvas, 3, VTOBJS{&penLayer,&a, &b});
+	print(&canvas, true);
 	printf("isTouching(&canvas, &b, 1, VTOBJS{&a})=%d\n", isTouching(&canvas, &b, 1, VTOBJS{&a}));
-	printf("isTouchingChar(&canvas, &b, VTCHAR \"░\")=%d\n", isTouchingChar(&canvas, &b, VTCHAR "░"));
+	printf("isTouchingChar(&canvas, &b, VTCHAR \"░\")=%d\n", isTouchingChar(&penLayer, &b, VTCHAR "░"));
 	printf("isOutside(&canvas,&b)=%d\n", isOutside(&canvas, &b));
 
 	changeY(NULL, &b, 1);
 
-	draw(&canvas, 2, VTOBJS{&a, &b});
+	draw(&canvas, 3, VTOBJS{&penLayer,&a, &b});
+	print(&canvas, true);
 	printf("isTouching(&canvas, &b, 1, VTOBJS{&a})=%d\n", isTouching(&canvas, &b, 1, VTOBJS{&a}));
-	printf("isTouchingChar(&canvas, &b, VTCHAR \"░\")=%d\n", isTouchingChar(&canvas, &b, VTCHAR "░"));
+	printf("isTouchingChar(&canvas, &b, VTCHAR \"░\")=%d\n", isTouchingChar(&penLayer, &b, VTCHAR "░"));
 	printf("isOutside(&canvas,&b)=%d\n", isOutside(&canvas, &b));
 
-	penClear(&canvas);
+	clear(&penLayer);
 
-	draw(&canvas, 2, VTOBJS{&a, &b});
+	draw(&canvas, 3, VTOBJS{&penLayer,&a, &b});
+	print(&canvas, true);
 	printf("isTouching(&canvas, &b, 1, VTOBJS{&a})=%d\n", isTouching(&canvas, &b, 1, VTOBJS{&a}));
-	printf("isTouchingChar(&canvas, &b, VTCHAR \"░\")=%d\n", isTouchingChar(&canvas, &b, VTCHAR "░"));
+	printf("isTouchingChar(&canvas, &b, VTCHAR \"░\")=%d\n", isTouchingChar(&penLayer, &b, VTCHAR "░"));
 	printf("isOutside(&canvas,&b)=%d\n", isOutside(&canvas, &b));
 
 	changeY(NULL, &b, -4);
 
-	draw(&canvas, 2, VTOBJS{&a, &b});
+	draw(&canvas, 3, VTOBJS{&penLayer,&a, &b});
+	print(&canvas, true);
 	printf("isTouching(&canvas, &b, 1, VTOBJS{&a})=%d\n", isTouching(&canvas, &b, 1, VTOBJS{&a}));
-	printf("isTouchingChar(&canvas, &b, VTCHAR \"░\")=%d\n", isTouchingChar(&canvas, &b, VTCHAR "░"));
+	printf("isTouchingChar(&canvas, &b, VTCHAR \"░\")=%d\n", isTouchingChar(&penLayer, &b, VTCHAR "░"));
 	printf("isOutside(&canvas,&b)=%d\n", isOutside(&canvas, &b));
 	putchar('\n');
 	printf("isTouching(&canvas, &b, 1, VTOBJS{&b})=%d\n", isTouching(&canvas, &b, 1, VTOBJS{&b}));
 
 	deleteObj(&a);
 	deleteObj(&b);
-	deleteCanvas(&canvas);
+	deleteObj(&penLayer);
+	deleteObj(&canvas);
 	puts("ok");
 }
 
@@ -274,14 +287,13 @@ int main(int argv, char **argc) {
 	putchar('\n');
 	printf("sizeof(CharMap)=%lu alignof(CharMap)=%lu\n", sizeof(CharMap), alignof(CharMap));
 	printf("sizeof(Obj)=%lu alignof(Obj)=%lu\n", sizeof(Obj), alignof(Obj));
-	printf("sizeof(Canvas)=%lu alignof(Canvas)=%lu\n", sizeof(Canvas), alignof(Canvas));
 
 	putchar('\n');
 
 	// penTest("█");
-	// alignTest();
-	// drawToStringTest();
-	// collisionTest();
+	alignTest();
+	drawToStringTest();
+	collisionTest();
 
 	/*	for(unsigned int y=0; y<height;y++) {
 	  for(unsigned int x = 0; x < width; x++) {
@@ -290,6 +302,6 @@ int main(int argv, char **argc) {
 	  putchar('\n');
 	}*/
 
-	getchar();
+	// getchar();
 }
 
