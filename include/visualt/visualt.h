@@ -31,16 +31,16 @@ struct Canvas {
 };
 
 //----MISC----
-void about();
+void about(); //print info about VisualT
 //----INITIALIZATION----
 void initializeCanvas(struct Canvas *canvas, unsigned int width, unsigned int height);
+void initializeCanvasCanvas(struct Canvas *canvas, const struct Canvas *src);
+void initializeObjObj(struct Obj *obj, const struct Obj *src);
 void initializeArrayObj(struct Obj *obj, const uint32_t *v);
 void initializeFileObj(struct Obj *obj, const char path[const]);
 void initializeStringObj(struct Obj *obj, unsigned int spritesLength, const uint8_t *const *utf8Text);
 void deleteCanvas(const struct Canvas *canvas);
 void deleteObj(const struct Obj *obj);
-void cloneCanvas(struct Canvas *dest, const struct Canvas *src);
-void cloneObj(struct Obj *dest, const struct Obj *src);
 //----CANVAS----
 void resizeCanvas(struct Canvas *canvas, unsigned int width, unsigned int height);
 unsigned int canvasWidth(const struct Canvas *canvas);
@@ -89,7 +89,7 @@ bool isOutside(const struct Canvas *canvas, const struct Obj *obj);
 #endif
 
 //----MISC----
-//info about visualt
+
 //to free a dynamic 2d array mna of width width
 
 //----POINTERS----

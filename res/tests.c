@@ -266,6 +266,31 @@ void collisionTest() {
 	puts("ok");
 }
 
+void cloneTest() {
+	puts("clone test:");
+	Canvas canvas1,canvas2;
+	Obj a, b;
+	initializeCanvas(&canvas1, 60, 10);
+	initializeStringObj(&a, 2, VTSTRS{"║█║█║║█║█║█║║█║█║║█║█║█\n║█║█║║█║█║█║║█║█║║█║█║█\n║║║║║║║║║║║║║║║║║║║║║║║\n╚╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩", "\v\v\v\v\v\v\v\v\v\v\v\v╭━━━\n\v\v\v╭━━╮\v\v\v\v\v┃RAWR\n\v\v╭╯┊◣╰━━━╮\v╰┳━━\n\v\v┃┊┊┊╱▽▽▽┛\v\v┃\v\v\n\v\v┃┊┊┊▏━━━━━━╯\v\v\n━━╯┊┊┊╲△△△┓\v\v\v\v\v\n┊┊┊┊╭━━━━━╯\v\v\v\v\v"});
+	initializeObjObj(&b, &a);
+
+	moveTo(NULL, &a, -15, 1);
+	stamp(&canvas1,&a);
+	setSprite(&a,1);
+	moveTo(NULL, &b, 15, -1);
+
+	initializeCanvasCanvas(&canvas2,&canvas1);
+
+	draw(&canvas1, 2, VTOBJS{&a, &b});
+	draw(&canvas2, 2, VTOBJS{&a, &b});
+
+	deleteObj(&b);
+	deleteObj(&a);
+	deleteCanvas(&canvas1);
+	deleteCanvas(&canvas2);
+	puts("ok");
+}
+
 int main(int argv, char **argc) {
 	printf("sizeof(void*)=%lu alignof(void*)=%lu\n", sizeof(void *), alignof(void *));
 	printf("sizeof(int)=%lu alignof(int)=%lu\n", sizeof(int), alignof(int));
@@ -278,10 +303,11 @@ int main(int argv, char **argc) {
 
 	putchar('\n');
 
-	// penTest("█");
-	// alignTest();
-	// drawToStringTest();
-	// collisionTest();
+	penTest("█");
+	alignTest();
+	drawToStringTest();
+	collisionTest();
+	cloneTest();
 
 	/*	for(unsigned int y=0; y<height;y++) {
 	  for(unsigned int x = 0; x < width; x++) {
@@ -290,6 +316,6 @@ int main(int argv, char **argc) {
 	  putchar('\n');
 	}*/
 
-	getchar();
+	// getchar();
 }
 

@@ -1,4 +1,4 @@
-#include <visualt/visualt.h>
+#include "visualt/visualt.h"
 // #include <stdio.h>
 #include <stdlib.h>
 #include <getch.h>
@@ -8,7 +8,8 @@ typedef struct Obj Obj;
 
 void help(Obj *info, int i);
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 	Canvas canvas;
 	Obj info, cat, textBox;
 
@@ -16,7 +17,7 @@ int main(int argc, char **argv) {
 
 	initializeCanvas(&canvas, 100, 20); //create a new stage of size 100x20
 	initializeFileObj(&cat, "obj/cat.obj"); //load the cat obj from a file
-	printAxes(&canvas); //draw the x and y axes on the pen layer
+	printAxes(&canvas); //render the x and y axes on the pen layer
 
 	help(&info, 1);
 	draw(&canvas, 2, VTOBJS{&info, &cat}); //render the scene with the cat i just loaded

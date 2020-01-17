@@ -13,6 +13,7 @@ target_include_directories(visualt PUBLIC ../include)
 
 # All users of this library will need at least C99
 target_compile_features(visualt PUBLIC c_std_99)
+target_compile_options(visualt PRIVATE -Wall -Wextra)
 
 # IDEs should put the headers in a nice place
 source_group(TREE "${PROJECT_SOURCE_DIR}/include" PREFIX "Header Files" FILES ${HEADER_LIST})
