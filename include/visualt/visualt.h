@@ -6,11 +6,20 @@
 
 // #define VISUALT_UNBUFFERED_PRINT
 
-#define VTSTR (const uint8_t*)
-#define VTSTRS (const uint8_t *const *)(const char *const [])
-#define VTSIZES (const unsigned int [][2])
+#define VTSTR (const uint8_t *const)
+#define LTSTR VTSTR
+
+#define VTSTRS (const uint8_t *const *const)
+#define LTSTRS VTSTRS(const char *const [])
+
+#define VTSIZES (const unsigned int (*const)[2])
+#define LTSIZES VTSIZES(const unsigned int [][2])
+
 #define VTCHAR *(const uint32_t *const)
-#define VTOBJS (const Obj *const [])
+#define LTCHAR VTCHAR
+
+#define VTOBJS (const struct Obj *const *)
+#define LTOBJS VTOBJS(const Obj *const [])
 
 struct CharMap {
 	uint32_t *chars;
@@ -27,19 +36,19 @@ struct Obj {
 };
 
 //----MISC----
-void about();
+void about(); //print info about VisualT
 //----INITIALIZATION----
 void initializeBlankObj(struct Obj *obj, unsigned int sizesLength, const unsigned int (*sizes)[2]);
 void initializeArrayObj(struct Obj *obj, const uint32_t *v);
 void initializeFileObj(struct Obj *obj, const char path[const]);
 void initializeStringObj(struct Obj *obj, unsigned int utf8StringsLength, const uint8_t *const *utf8Strings);
-void deleteObj(const struct Obj *obj);
-void cloneSprite(struct Obj *dest, const struct Obj *src);
-void cloneObj(struct Obj *dest, const struct Obj *src);
+void initializeObjObj(struct Obj *obj, const struct Obj *src);
+void releaseObj(const struct Obj *obj);
+void cloneSprite(const struct Obj *dest, unsigned int spriteDest, const struct Obj *src, unsigned int spriteSrc);
 //----CANVAS----
 void resize(struct Obj *canvas, unsigned int width, unsigned int height);
 //----REFRESH----
-void draw(const struct Obj *canvas, unsigned int objsLength, const struct Obj *const *objs);
+void render(const struct Obj *canvas, unsigned int objsLength, const struct Obj *const *objs);
 void print(const struct Obj *canvas, bool border);
 unsigned int printToString(const struct Obj *canvas, bool border, uint8_t **utf8String);
 //----TEXT----
@@ -83,7 +92,7 @@ bool isOutside(const struct Obj *canvas, const struct Obj *obj);
 #endif
 
 //----MISC----
-//info about visualt
+
 //to free a dynamic 2d array mna of width width
 
 //----POINTERS----
@@ -166,4 +175,4 @@ bool isOutside(const struct Obj *canvas, const struct Obj *obj);
 //to show your program general status
 //to show the status of all the loaded objects
 //to show the oject's status
-//to draw x and y axes
+//to render x and y axes
