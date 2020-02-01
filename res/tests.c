@@ -15,20 +15,20 @@ void penTest(const char penChar[const]) {
 	initializeStringObj(&p, 1, LTSTRS{"p"});
 	setPenChar(&p, LTCHAR penChar);
 
-	moveTo(NULL, &p, -57, 7);
+	gotoXY(NULL, &p, -57, 7);
 	for(unsigned int penSize = 0; penSize <= 5; penSize++) {
 		changeX(NULL, &p, 13);
 		setPenSize(&p, penSize);
 		changeX(&canvas, &p, 0);
 	}
 
-	moveTo(NULL, &p, -46, -2);
+	gotoXY(NULL, &p, -46, -2);
 	for(unsigned int i = 0; i <= 13; i++) {
 		setPenSize(&p, (unsigned short)((double)i/11*5));
 		changeX(&canvas, &p, 5);
 	}
 
-	moveTo(NULL, &p, 40, 7);
+	gotoXY(NULL, &p, 40, 7);
 	for(unsigned int i = 0; i <= 7; i++) {
 		setPenSize(&p, (unsigned short)(short)((double)i/7*5));
 		changeY(&canvas, &p, -2);
@@ -36,8 +36,7 @@ void penTest(const char penChar[const]) {
 
 	// render(&canvas, 0, NULL);
 	print(&canvas, true);
-	releaseObj(&canvas);
-	releaseObj(&p);
+	releaseObjs(2, LTOBJS{&canvas, &p});
 	puts("ok");
 }
 
@@ -49,140 +48,122 @@ void alignTest() {
 	initializeStringObj(&viewfinder, 1, LTSTRS{"██\n██"});
 
 	// top left 2x2
-	moveTo(NULL, &viewfinder, -28, 3);
-	moveTo(NULL, &target, -28, 3);
+	gotoXY(NULL, &viewfinder, -28, 3);
+	gotoXY(NULL, &target, -28, 3);
 	align(&viewfinder, 0);
-	stamp(&canvas, &viewfinder);
-	stamp(&canvas, &target);
+	stamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// top right 2x2
-	moveTo(NULL, &viewfinder, -23, 3);
-	moveTo(NULL, &target, -23, 3);
+	gotoXY(NULL, &viewfinder, -23, 3);
+	gotoXY(NULL, &target, -23, 3);
 	align(&viewfinder, 1);
-	stamp(&canvas, &viewfinder);
-	stamp(&canvas, &target);
+	stamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// bottom left 2x2
-	moveTo(NULL, &viewfinder, -18, 3);
-	moveTo(NULL, &target, -18, 3);
+	gotoXY(NULL, &viewfinder, -18, 3);
+	gotoXY(NULL, &target, -18, 3);
 	align(&viewfinder, 2);
-	stamp(&canvas, &viewfinder);
-	stamp(&canvas, &target);
+	stamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// bottom right 2x2
-	moveTo(NULL, &viewfinder, -12, 3);
-	moveTo(NULL, &target, -12, 3);
+	gotoXY(NULL, &viewfinder, -12, 3);
+	gotoXY(NULL, &target, -12, 3);
 	align(&viewfinder, 3);
-	stamp(&canvas, &viewfinder);
-	stamp(&canvas, &target);
+	stamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
-	setSpriteText(&viewfinder, LTSTR "███\n███");
+	setText(&viewfinder, LTSTR "███\n███");
 
 	// top left 3x2
-	moveTo(NULL, &viewfinder, -7, 3);
-	moveTo(NULL, &target, -7, 3);
+	gotoXY(NULL, &viewfinder, -7, 3);
+	gotoXY(NULL, &target, -7, 3);
 	align(&viewfinder, 0);
-	stamp(&canvas, &viewfinder);
-	stamp(&canvas, &target);
+	stamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// top right 3x2
-	moveTo(NULL, &viewfinder, -1, 3);
-	moveTo(NULL, &target, -1, 3);
+	gotoXY(NULL, &viewfinder, -1, 3);
+	gotoXY(NULL, &target, -1, 3);
 	align(&viewfinder, 1);
-	stamp(&canvas, &viewfinder);
-	stamp(&canvas, &target);
+	stamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// bottom left 3x2
-	moveTo(NULL, &viewfinder, 5, 3);
-	moveTo(NULL, &target, 5, 3);
+	gotoXY(NULL, &viewfinder, 5, 3);
+	gotoXY(NULL, &target, 5, 3);
 	align(&viewfinder, 2);
-	stamp(&canvas, &viewfinder);
-	stamp(&canvas, &target);
+	stamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// bottom right 3x2
-	moveTo(NULL, &viewfinder, 11, 3);
-	moveTo(NULL, &target, 11, 3);
+	gotoXY(NULL, &viewfinder, 11, 3);
+	gotoXY(NULL, &target, 11, 3);
 	align(&viewfinder, 3);
-	stamp(&canvas, &viewfinder);
-	stamp(&canvas, &target);
+	stamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
-	setSpriteText(&viewfinder, LTSTR "██\n██\n██");
+	setText(&viewfinder, LTSTR "██\n██\n██");
 
 	// top left 2x3
-	moveTo(NULL, &viewfinder, -28, -1);
-	moveTo(NULL, &target, -28, -1);
+	gotoXY(NULL, &viewfinder, -28, -1);
+	gotoXY(NULL, &target, -28, -1);
 	align(&viewfinder, 0);
-	stamp(&canvas, &viewfinder);
-	stamp(&canvas, &target);
+	stamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// top right 2x3
-	moveTo(NULL, &viewfinder, -23, -1);
-	moveTo(NULL, &target, -23, -1);
+	gotoXY(NULL, &viewfinder, -23, -1);
+	gotoXY(NULL, &target, -23, -1);
 	align(&viewfinder, 1);
-	stamp(&canvas, &viewfinder);
-	stamp(&canvas, &target);
+	stamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// bottom left 2x3
-	moveTo(NULL, &viewfinder, -18, -1);
-	moveTo(NULL, &target, -18, -1);
+	gotoXY(NULL, &viewfinder, -18, -1);
+	gotoXY(NULL, &target, -18, -1);
 	align(&viewfinder, 2);
-	stamp(&canvas, &viewfinder);
-	stamp(&canvas, &target);
+	stamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// bottom right 2x3
-	moveTo(NULL, &viewfinder, -12, -1);
-	moveTo(NULL, &target, -12, -1);
+	gotoXY(NULL, &viewfinder, -12, -1);
+	gotoXY(NULL, &target, -12, -1);
 	align(&viewfinder, 3);
-	stamp(&canvas, &viewfinder);
-	stamp(&canvas, &target);
+	stamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
-	setSpriteText(&viewfinder, LTSTR "███\n███\n███");
+	setText(&viewfinder, LTSTR "███\n███\n███");
 
 	// top left 3x3
-	moveTo(NULL, &viewfinder, -7, -1);
-	moveTo(NULL, &target, -7, -1);
+	gotoXY(NULL, &viewfinder, -7, -1);
+	gotoXY(NULL, &target, -7, -1);
 	align(&viewfinder, 0);
-	stamp(&canvas, &viewfinder);
-	stamp(&canvas, &target);
+	stamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// top right 3x3
-	moveTo(NULL, &viewfinder, -1, -1);
-	moveTo(NULL, &target, -1, -1);
+	gotoXY(NULL, &viewfinder, -1, -1);
+	gotoXY(NULL, &target, -1, -1);
 	align(&viewfinder, 1);
-	stamp(&canvas, &viewfinder);
-	stamp(&canvas, &target);
+	stamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// bottom left 3x3
-	moveTo(NULL, &viewfinder, 5, -1);
-	moveTo(NULL, &target, 5, -1);
+	gotoXY(NULL, &viewfinder, 5, -1);
+	gotoXY(NULL, &target, 5, -1);
 	align(&viewfinder, 2);
-	stamp(&canvas, &viewfinder);
-	stamp(&canvas, &target);
+	stamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// bottom right 3x3
-	moveTo(NULL, &viewfinder, 11, -1);
-	moveTo(NULL, &target, 11, -1);
+	gotoXY(NULL, &viewfinder, 11, -1);
+	gotoXY(NULL, &target, 11, -1);
 	align(&viewfinder, 3);
-	stamp(&canvas, &viewfinder);
-	stamp(&canvas, &target);
+	stamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	print(&canvas, true);
 
-	releaseObj(&viewfinder);
-	releaseObj(&target);
-	releaseObj(&canvas);
+	releaseObjs(3, LTOBJS{&viewfinder, &target, &canvas});
 	puts("ok");
 }
 
 void drawToStringTest() {
-	puts("render to string test:");
+	puts("draw to string test:");
 	Obj canvas, a;
 	unsigned int length;
 	unsigned char *s;
 	initializeBlankObj(&canvas, 1, LTSIZES{{60, 16}});
 	initializeStringObj(&a, 1, LTSTRS{"▀▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀\n▄▀─▄▀─▄▀─▄▀─▄▀─▄▀─▄▀─▄\n▀─▄▀─▄▀─▄▀─▄▀─▄▀─▄▀─▄▀\n▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀▄\n▀▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀\n▄▀─▄▀─▄▀─▄▀─▄▀"});
 
-	stamp(&canvas, &a);
+	stamp(&canvas, 1, LTOBJS{&a});
 	length = printToString(&canvas, true, &s);
 	printf("length: %d\n%s\n", length, s);
 	free(s);
@@ -190,8 +171,7 @@ void drawToStringTest() {
 	printf("length: %d\n%s\n", length, s);
 	free(s);
 
-	releaseObj(&a);
-	releaseObj(&canvas);
+	releaseObjs(2, LTOBJS{&a, &canvas});
 	puts("ok");
 }
 
@@ -206,8 +186,8 @@ void collisionTest() {
 
 	setPenSize(&pot, 2);
 	setPenChar(&pot, LTCHAR "░");
-	moveTo(NULL, &pot, 18, 6);
-	moveTo(&penLayer, &pot, 18, -6);
+	gotoXY(NULL, &pot, 18, 6);
+	gotoXY(&penLayer, &pot, 18, -6);
 
 	render(&canvas, 3, LTOBJS{&penLayer, &pot, &circle});
 	print(&canvas, true);
@@ -215,7 +195,7 @@ void collisionTest() {
 	printf("isTouchingChar(&penLayer, &circle, VTCHAR \"░\")=%d\n", isTouchingChar(&penLayer, &circle, LTCHAR "░"));
 	printf("isOutside(&canvas, &circle)=%d\n", isOutside(&canvas, &circle));
 
-	setX(NULL, &circle, 18);
+	gotoX(NULL, &circle, 18);
 
 	render(&canvas, 3, LTOBJS{&penLayer, &pot, &circle});
 	print(&canvas, true);
@@ -223,7 +203,7 @@ void collisionTest() {
 	printf("isTouchingChar(&penLayer, &circle, VTCHAR \"░\")=%d\n", isTouchingChar(&penLayer, &circle, LTCHAR "░"));
 	printf("isOutside(&canvas, &circle)=%d\n", isOutside(&canvas, &circle));
 
-	setY(NULL, &circle, -5);
+	gotoY(NULL, &circle, -5);
 
 	render(&canvas, 3, LTOBJS{&penLayer, &pot, &circle});
 	print(&canvas, true);
@@ -257,18 +237,15 @@ void collisionTest() {
 	putchar('\n');
 	printf("isTouching(&canvas, &circle, 1, VTOBJS{&circle})=%d\n", isTouching(&canvas, &circle, 1, LTOBJS{&circle}));
 
-	releaseObj(&pot);
-	releaseObj(&circle);
-	releaseObj(&penLayer);
-	releaseObj(&canvas);
+	releaseObjs(4, LTOBJS{&pot, &circle, &penLayer, &canvas});
 	puts("ok");
 }
 
-void cloneTest() {
-	puts("clone test:");
+void cloneResizeTest() {
+	puts("clone resize test:");
 	Obj canvas, a;
 	initializeBlankObj(&canvas, 2, LTSIZES{{60, 10},
-	                                       {1,  1}});
+																				 {1,  1}});
 	initializeStringObj(&a, 2, LTSTRS{"║█║█║║█║█║█║║█║█║║█║█║█\n║█║█║║█║█║█║║█║█║║█║█║█\n║║║║║║║║║║║║║║║║║║║║║║║\n╚╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩", "\v\v\v\v\v\v\v\v\v\v\v\v╭━━━\n\v\v\v╭━━╮\v\v\v\v\v┃RAWR\n\v\v╭╯┊◣╰━━━╮\v╰┳━━\n\v\v┃┊┊┊╱▽▽▽┛\v\v┃\v\v\n\v\v┃┊┊┊▏━━━━━━╯\v\v\n━━╯┊┊┊╲△△△┓\v\v\v\v\v\n┊┊┊┊╭━━━━━╯\v\v\v\v\v"});
 
 	print(&canvas, true);
@@ -276,6 +253,7 @@ void cloneTest() {
 	print(&canvas, true);
 	setSprite(&canvas, 0);
 
+	resize(&canvas,40,6);
 	render(&canvas, 1, LTOBJS{&a});
 	cloneSprite(&canvas, 1, &canvas, 0);
 	setSprite(&a, 1);
@@ -285,25 +263,24 @@ void cloneTest() {
 	setSprite(&canvas, 1);
 	print(&canvas, true);
 
-	releaseObj(&a);
-	releaseObj(&canvas);
+	releaseObjs(2, LTOBJS{&a, &canvas});
 	puts("ok");
 }
 
 void setSpriteTextTest() {
-	puts("setSpriteTextTest:");
+	puts("setSpriteText test:");
 	Obj a;
 	initializeStringObj(&a, 1, LTSTRS{"║█║█║║█║█║█║║█║█║║█║█║█\n║█║█║║█║█║█║║█║█║║█║█║█\n║║║║║║║║║║║║║║║║║║║║║║║\n╚╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩"});
 	print(&a, true);
-	setSpriteText(&a, LTSTR "\v\v\v\v\v\v\v\v\v\v\v\v╭━━━\n\v\v\v╭━━╮\v\v\v\v\v┃RAWR\n\v\v╭╯┊◣╰━━━╮\v╰┳━━\n\v\v┃┊┊┊╱▽▽▽┛\v\v┃\v\v\n\v\v┃┊┊┊▏━━━━━━╯\v\v\n━━╯┊┊┊╲△△△┓\v\v\v\v\v\n┊┊┊┊╭━━━━━╯\v\v\v\v\v");
+	setText(&a, LTSTR "\v\v\v\v\v\v\v\v\v\v\v\v╭━━━\n\v\v\v╭━━╮\v\v\v\v\v┃RAWR\n\v\v╭╯┊◣╰━━━╮\v╰┳━━\n\v\v┃┊┊┊╱▽▽▽┛\v\v┃\v\v\n\v\v┃┊┊┊▏━━━━━━╯\v\v\n━━╯┊┊┊╲△△△┓\v\v\v\v\v\n┊┊┊┊╭━━━━━╯\v\v\v\v\v");
 	print(&a, true);
 
-	releaseObj(&a);
+	releaseObjs(1, LTOBJS{&a});
 	puts("ok");
 }
 
-void dynamicDataTest() {
-	puts("dynamicDataTest:");
+void dynamicMemoryTest() {
+	puts("dynamic memory test:");
 
 	puts("1-initializeBlankObj() with dynamic array of pointer to (dynamic) unsigned int[2]");
 	{
@@ -313,18 +290,18 @@ void dynamicDataTest() {
 		v[0][1] = 2;
 		v[1][0] = 2;
 		v[1][1] = 1;
-		initializeBlankObj(&a, 2, VTSIZES v);
+		initializeBlankObj(&a, 2, (VTSizes)v);
 		free(v);
 		print(&a, true);
 		nextSprite(&a);
 		print(&a, true);
-		releaseObj(&a);
+		releaseObjs(1, LTOBJS{&a});
 	}
 
 	puts("2-initializeArrayObj() with dynamic array of unsigned int");
 	{
 		Obj a;
-		uint32_t *v = malloc(4*sizeof(uint32_t));
+		VTChar *v = malloc(4*sizeof(VTChar));
 		v[0] = 1;
 		v[1] = 1;
 		v[2] = 1;
@@ -332,7 +309,7 @@ void dynamicDataTest() {
 		initializeArrayObj(&a, v);
 		free(v);
 		print(&a, true);
-		releaseObj(&a);
+		releaseObjs(1, LTOBJS{&a});
 	}
 
 	puts("3-initializeStringObj() with dynamic array of pointer to (dynamic) char");
@@ -343,14 +320,14 @@ void dynamicDataTest() {
 		strcpy((char *)strings[0], "Hello");
 		strings[1] = malloc(7*sizeof(char));
 		strcpy((char *)strings[1], "World!");
-		initializeStringObj(&a, 2, VTSTRS strings);
+		initializeStringObj(&a, 2, (VTStrs)strings);
 		free(strings[0]);
 		free(strings[1]);
 		free(strings);
 		print(&a, true);
 		nextSprite(&a);
 		print(&a, true);
-		releaseObj(&a);
+		releaseObjs(1, LTOBJS{&a});
 	}
 
 	puts("4-fill() with dynamic array of char");
@@ -359,10 +336,10 @@ void dynamicDataTest() {
 		strcpy(c, "▀");
 		Obj a;
 		initializeBlankObj(&a, 1, LTSIZES{{2, 2}});
-		fill(&a, VTCHAR c);
+		fill(&a, LTCHAR c);
 		free(c);
 		print(&a, true);
-		releaseObj(&a);
+		releaseObjs(1, LTOBJS{&a});
 	}
 
 	puts("5-initializeStringObj(), setY(), render() with dynamic array of pointer to (dynamic) Obj");
@@ -372,26 +349,25 @@ void dynamicDataTest() {
 		Obj **objs = malloc(2*sizeof(Obj *));
 		objs[0] = malloc(sizeof(Obj));
 		initializeStringObj(objs[0], 1, LTSTRS{"Hello"});
-		setY(NULL, objs[0], 1);
+		gotoY(NULL, objs[0], 1);
 		objs[1] = malloc(sizeof(Obj));
 		initializeStringObj(objs[1], 1, LTSTRS{"World!"});
-		setY(NULL, objs[1], -1);
+		gotoY(NULL, objs[1], -1);
 
-		render(&canvas, 2, VTOBJS objs);
+		render(&canvas, 2, (VTObjs)objs);
 		print(&canvas, true);
 
-		releaseObj(objs[0]);
-		releaseObj(objs[1]);
+		releaseObjs(3, LTOBJS{&canvas, objs[0], objs[1]});
 		free(objs[0]);
 		free(objs[1]);
 		free(objs);
-		releaseObj(&canvas);
 	}
 
 	puts("ok");
 }
 
 int main() {
+	about();
 	puts("\nThese tests are meant to be ran with Valgrind: https://valgrind.org/\n");
 
 	printf("sizeof(void*)=%lu alignof(void*)=%lu\n", sizeof(void *), alignof(void *));
@@ -404,13 +380,15 @@ int main() {
 
 	putchar('\n');
 
-	penTest("█");
+	// penTest("█");
+	penTest("#");
+
 	alignTest();
 	drawToStringTest();
 	collisionTest();
-	cloneTest();
+	cloneResizeTest();
 	setSpriteTextTest();
-	dynamicDataTest();
+	dynamicMemoryTest();
 
 	// getchar();
 }

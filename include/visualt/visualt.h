@@ -1,3 +1,4 @@
+#pragma once
 #ifndef VISUALT_INCLUDE_VISUALT_VISUALT_H_
 #define VISUALT_INCLUDE_VISUALT_VISUALT_H_
 
@@ -6,29 +7,29 @@
 
 // #define VISUALT_UNBUFFERED_PRINT
 
-#define VTSTR (const uint8_t *const)
-#define LTSTR VTSTR
+typedef uint32_t VTChar;
+#define LTCHAR *(VTChar *const)
 
-#define VTSTRS (const uint8_t *const *const)
-#define LTSTRS VTSTRS(const char *const [])
+typedef const uint8_t *VTStr;
+#define LTSTR (VTStr)
 
-#define VTSIZES (const unsigned int (*const)[2])
-#define LTSIZES VTSIZES(const unsigned int [][2])
+typedef const uint8_t *const *VTStrs;
+#define LTSTRS (VTStrs)(const char *const [])
 
-#define VTCHAR *(const uint32_t *const)
-#define LTCHAR VTCHAR
+typedef const unsigned int (*VTSizes)[2];
+#define LTSIZES (VTSizes)(const unsigned int [][2])
 
-#define VTOBJS (const struct Obj *const *)
-#define LTOBJS VTOBJS(const Obj *const [])
+typedef const struct Obj *const *VTObjs;
+#define LTOBJS (VTObjs)(const struct Obj *const [])
 
 struct CharMap {
-	uint32_t *chars;
+	VTChar *chars;
 	unsigned int width, height;
 };
 
 struct Obj {
 	struct CharMap *sprites, *currentSprite;
-	uint32_t penChar;
+	VTChar penChar;
 	int x, y;
 	unsigned int length;
 	unsigned short penSize;
@@ -38,33 +39,31 @@ struct Obj {
 //----MISC----
 void about(); //print info about VisualT
 //----INITIALIZATION----
-void initializeBlankObj(struct Obj *obj, unsigned int sizesLength, const unsigned int (*sizes)[2]);
-void initializeArrayObj(struct Obj *obj, const uint32_t *v);
+void initializeBlankObj(struct Obj *obj, unsigned int sizesLength, VTSizes sizes);
+void initializeArrayObj(struct Obj *obj, const VTChar *v);
 void initializeFileObj(struct Obj *obj, const char path[const]);
-void initializeStringObj(struct Obj *obj, unsigned int utf8StringsLength, const uint8_t *const *utf8Strings);
+void initializeStringObj(struct Obj *obj, unsigned int utf8StringsLength, VTStrs utf8Strings);
 void initializeObjObj(struct Obj *obj, const struct Obj *src);
-void releaseObj(const struct Obj *obj);
+void releaseObjs(unsigned int objsLength, VTObjs objs);
 void cloneSprite(const struct Obj *dest, unsigned int spriteDest, const struct Obj *src, unsigned int spriteSrc);
-//----CANVAS----
-void resize(struct Obj *canvas, unsigned int width, unsigned int height);
+void resize(struct Obj *obj, unsigned int width, unsigned int height);
 //----REFRESH----
-void render(const struct Obj *canvas, unsigned int objsLength, const struct Obj *const *objs);
+void render(const struct Obj *canvas, unsigned int objsLength, VTObjs objs);
+void stamp(const struct Obj *canvas, unsigned int objsLength, VTObjs objs);
 void print(const struct Obj *canvas, bool border);
 unsigned int printToString(const struct Obj *canvas, bool border, uint8_t **utf8String);
-//----TEXT----
-void setSpriteText(struct Obj *obj, const uint8_t *utf8Text);
 //----SPRITE----
 unsigned int sprites(const struct Obj *obj);
-unsigned int sprite(const struct Obj *obj);
+unsigned int spriteInd(const struct Obj *obj);
 void nextSprite(struct Obj *obj);
 void precSprite(struct Obj *obj);
 void setSprite(struct Obj *obj, unsigned int sprite);
 unsigned int width(const struct Obj *obj);
 unsigned int height(const struct Obj *obj);
+void setText(struct Obj *obj, VTStr utf8Text);
 void clear(const struct Obj *canvas);
-void fill(const struct Obj *canvas, uint32_t fillChar);
+void fill(const struct Obj *canvas, VTChar fillChar);
 void overlay(const struct Obj *dest, unsigned int spriteDest, const struct Obj *src, unsigned int spriteSrc);
-void stamp(const struct Obj *canvas, const struct Obj *obj);
 void printAxes(const struct Obj *canvas);
 //----OBJ----
 bool visible(const struct Obj *obj);
@@ -72,21 +71,21 @@ void show(struct Obj *obj);
 void hide(struct Obj *obj);
 void setVisibility(struct Obj *obj, bool visible);
 //----PEN----
-uint32_t penChar(const struct Obj *obj);
+VTChar penChar(const struct Obj *obj);
 unsigned short penSize(const struct Obj *obj);
 void setPenSize(struct Obj *obj, unsigned short size);
-void setPenChar(struct Obj *obj, uint32_t penChar);
+void setPenChar(struct Obj *obj, VTChar penChar);
 //----MOVE----
 int xPosition(const struct Obj *obj);
 int yPosition(const struct Obj *obj);
-void moveTo(const struct Obj *canvas, struct Obj *obj, int x, int y);
-void setX(const struct Obj *canvas, struct Obj *obj, int x);
-void setY(const struct Obj *canvas, struct Obj *obj, int y);
+void gotoXY(const struct Obj *canvas, struct Obj *obj, int x, int y);
+void gotoX(const struct Obj *canvas, struct Obj *obj, int x);
+void gotoY(const struct Obj *canvas, struct Obj *obj, int y);
 void changeX(const struct Obj *canvas, struct Obj *obj, int x);
 void changeY(const struct Obj *canvas, struct Obj *obj, int y);
 void align(struct Obj *obj, unsigned char position);
-bool isTouching(const struct Obj *canvas, const struct Obj *obj, unsigned int objsLength, const struct Obj *const *objs);
-bool isTouchingChar(const struct Obj *canvas, const struct Obj *obj, uint32_t character);
+bool isTouching(const struct Obj *canvas, const struct Obj *obj, unsigned int objsLength, VTObjs objs);
+bool isTouchingChar(const struct Obj *canvas, const struct Obj *obj, VTChar character);
 bool isOutside(const struct Obj *canvas, const struct Obj *obj);
 
 #endif
