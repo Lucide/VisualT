@@ -1,8 +1,7 @@
-#include "visualt/visualt.h"
+#include "visualt/visualtUnprefixed.h"
 #include "getch.h"
 
-typedef struct Canvas Canvas;
-typedef struct Obj Obj;
+typedef struct vtObj Obj;
 
 void help(Obj *info, int i);
 
@@ -11,9 +10,9 @@ int main() {
 
 	help(&info, 0);
 
-	initializeBlankObj(&canvas, 1, LTSIZES{{100, 20}}); //create a new stage of size 100x20
-	initializeObjObj(&penLayer, &canvas);
-	initializeFileObj(&cat, "res/cat.obj"); //load the cat obj from a file
+	initializeBlank(&canvas, 1, LTSIZES{{100, 20}}); //create a new stage of size 100x20
+	initializeObj(&penLayer, &canvas);
+	initializeFile(&cat, "res/cat.obj"); //load the cat obj from a file
 	printAxes(&penLayer); //render the x and y axes on the pen layer
 
 	help(&info, 1);
@@ -26,7 +25,7 @@ int main() {
 	render(&canvas, 3, LTOBJS{&penLayer, &info, &cat}); //refresh the screen
 	print(&canvas, true);
 
-	initializeStringObj(&textBox, 1, LTSTRS{"textBox"}); //create a new textbox
+	initializeString(&textBox, 1, LTSTRS{"textBox"}); //create a new textbox
 
 	help(&info, 3);
 	render(&canvas, 4, LTOBJS{&penLayer, &info, &cat, &textBox});
@@ -101,7 +100,7 @@ int main() {
 
 	getch();
 
-	releaseObjs(4, LTOBJS{&cat, &textBox, &penLayer, &canvas});
+	release(4, LTOBJS{&cat, &textBox, &penLayer, &canvas});
 
 	help(&info, 100);
 
@@ -115,20 +114,20 @@ void help(Obj *info, const int i) {
 	switch(i) {
 		default:
 		case 0:
-			initializeStringObj(info, 1, LTSTRS{"info"});
+			initializeString(info, 1, LTSTRS{"info"});
 			puts("Press any key to start...");
 			return;
 		case 1:
-			setText(info, LTSTR "initializeBlankObj(&canvas, 1, LTSIZES{{100, 20}});\n"
-													"initializeObjObj(&penLayer, &canvas);\n"
-													"initializeFileObj(&cat, \"res/cat.obj\");\n"
+			setText(info, LTSTR "initializeBlank(&canvas, 1, LTSIZES{{100, 20}});\n"
+													"initializeObj(&penLayer, &canvas);\n"
+													"initializeFile(&cat, \"res/cat.obj\");\n"
 													"printAxes(&penLayer);");
 			break;
 		case 2:
 			setText(info, LTSTR "gotoXY(NULL, &cat, 35, 0);");
 			break;
 		case 3:
-			setText(info, LTSTR "initializeStringObj(&textBox, 1, LTSTRS{\"textBox\"});");
+			setText(info, LTSTR "initializeString(&textBox, 1, LTSTRS{\"textBox\"});");
 			break;
 		case 4:
 			setText(info, LTSTR "setText(&textBox, LTSTR \"This is an example\\n\\nhello to everybody\");");
@@ -163,7 +162,7 @@ void help(Obj *info, const int i) {
 			setText(info, LTSTR "clear(&penLayer);");
 			break;
 		case 100:
-			releaseObjs(1,LTOBJS{info});
+			release(1,LTOBJS{info});
 			return;
 	}
 	gotoXY(NULL, info, -50, 10);

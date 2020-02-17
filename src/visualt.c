@@ -7,9 +7,9 @@
 #include <inttypes.h>
 #include <assert.h>
 
-typedef struct CharMap CharMap;
+typedef struct vtCharMap CharMap;
 
-typedef struct Obj Obj;
+typedef struct vtObj Obj;
 
 typedef struct BoolMap {
 	bool *chars;
@@ -17,38 +17,38 @@ typedef struct BoolMap {
 } BoolMap;
 
 //----INTERNALs----
-#define vtPuts(STRING) fputs((STRING), stdout)
+#define lputs(STRING) fputs((STRING), stdout)
 
-#define vt32Puts(VTCHAR, LENGTH) fwrite((VTCHAR), sizeof(VTChar), (LENGTH), stdout);
+#define puts32(VTCHAR, LENGTH) fwrite((VTCHAR), sizeof(VTChar), (LENGTH), stdout);
 
-#define vt32Putchar(VTCHAR) putchar((VTCHAR)>>0&0xffu);   \
+#define putchar32(VTCHAR) putchar((VTCHAR)>>0&0xffu);   \
                             putchar((VTCHAR)>>8&0xffu);   \
                             putchar((VTCHAR)>>16&0xffu);  \
                             putchar((VTCHAR)>>24&0xffu)
 
-#define vtInitializeObj(OBJ)  (OBJ)->x = 0;           \
+#define initializeObj(OBJ)  (OBJ)->x = 0;           \
                               (OBJ)->y = 0;           \
                               (OBJ)->visible = true;  \
                               (OBJ)->penSize = 0;     \
                               (OBJ)->penChar = '#';   \
                               (OBJ)->currentSprite = (OBJ)->sprites
 
-#define vtInitializeCharMap(CHARMAP, WIDTH, HEIGHT) (CHARMAP)->width = (WIDTH);   \
+#define initializeCharMap(CHARMAP, WIDTH, HEIGHT) (CHARMAP)->width = (WIDTH);   \
                                                     (CHARMAP)->height = (HEIGHT); \
-                                                    (CHARMAP)->chars = malloc(vtSizeofChars(CHARMAP))
+                                                    (CHARMAP)->chars = malloc(sizeofChars(CHARMAP))
 
-#define vtFreeCharMap(CHARMAP) free((CHARMAP)->chars)
+#define freeCharMap(CHARMAP) free((CHARMAP)->chars)
 
-#define vt32EndiannessSwap(VTCHAR) ((((VTCHAR)>>24u)&0xffu)|(((VTCHAR)>>8u)&0xff00u)|(((VTCHAR)<<8u)&0xff0000u)|(((VTCHAR)<<24u)&0xff000000u))
+#define endiannessSwap32(VTCHAR) ((((VTCHAR)>>24u)&0xffu)|(((VTCHAR)>>8u)&0xff00u)|(((VTCHAR)<<8u)&0xff0000u)|(((VTCHAR)<<24u)&0xff000000u))
 
-#define vtSizeofChars(CHARMAP) ((CHARMAP)->width*(CHARMAP)->height*sizeof(VTChar))
+#define sizeofChars(CHARMAP) ((CHARMAP)->width*(CHARMAP)->height*sizeof(VTChar))
 
-#define vtClearCharMap(CHARMAP) memset((CHARMAP)->chars, 0, vtSizeofChars((CHARMAP)))
+#define clearCharMap(CHARMAP) memset((CHARMAP)->chars, 0, sizeofChars((CHARMAP)))
 
-#define vtNormalizePosition(CHARMAP, SPRITE, SPRITEX, SPRITEY, X, Y)  (X) = (int)((CHARMAP)->width/2-(SPRITE)->width/2+(SPRITEX));  \
+#define normalizePosition(CHARMAP, SPRITE, SPRITEX, SPRITEY, X, Y)  (X) = (int)((CHARMAP)->width/2-(SPRITE)->width/2+(SPRITEX));  \
                                                                       (Y) = (int)((CHARMAP)->height/2-(SPRITE)->height/2-(SPRITEY))
 
-static void vtInitializeStringCharMap(CharMap *const charMap, const uint8_t *const utf8Text) {
+static void initializeStringCharMap(CharMap *const charMap, const uint8_t *const utf8Text) {
 	unsigned int charMapWidth = 1, charMapHeight = 1;
 	uint8_t *t;
 
@@ -66,7 +66,7 @@ static void vtInitializeStringCharMap(CharMap *const charMap, const uint8_t *con
 			}
 		}
 	}
-	vtInitializeCharMap(charMap, charMapWidth, charMapHeight);
+	initializeCharMap(charMap, charMapWidth, charMapHeight);
 	//parse
 	for(unsigned int i = 0, y = 0; y < charMapHeight; i++, y++) {
 		for(unsigned int x = 0; x < charMapWidth; x++) {
@@ -89,7 +89,7 @@ static void vtInitializeStringCharMap(CharMap *const charMap, const uint8_t *con
 					if(utf8Text[i] != '\v') {
 						t[0] = utf8Text[i++];
 					} else {
-						t[0] = utf8Text[i++] && 0;
+						t[0] = utf8Text[i++]*0;
 					}
 				} else {
 					for(; x < charMapWidth; x++) {
@@ -103,49 +103,49 @@ static void vtInitializeStringCharMap(CharMap *const charMap, const uint8_t *con
 
 #ifdef VISUALT_UNBUFFERED_PRINT
 
-static void vtPrintCharMap(const CharMap *const charMap, const bool border) {
+static void printCharMap(const CharMap *const charMap, const bool border) {
 	const unsigned int width = charMap->width, height = charMap->height;
 	const VTChar *const chars = charMap->chars;
 
 	if(border) {
-		vtPuts("┌");
+		lputs("┌");
 		for(unsigned int x = 0; x < width-1; x++) {
-			vtPuts("─");
+			lputs("─");
 		}
-		vtPuts("─┐\n");
+		lputs("─┐\n");
 		for(unsigned int y = 0; y < width*height; y += width) {
-			vtPuts("│");
+			lputs("│");
 			vt32Puts(&chars[0+y], width);
-			vtPuts("│\n");
+			lputs("│\n");
 		}
-		vtPuts("└");
+		lputs("└");
 		for(unsigned int x = 0; x < width-1; x++) {
-			vtPuts("─");
+			lputs("─");
 		}
-		vtPuts("─┘\n");
+		lputs("─┘\n");
 	} else {
 		for(unsigned int y = 0; y < width*height; y += width) {
-			vtPuts("│");
+			lputs("│");
 			vt32Puts(&chars[0+y], width);
-			vtPuts("│\n");
+			lputs("│\n");
 		}
 	}
 }
 
 #else
 
-static void vtPrintCharMap(const CharMap *const charMap, const bool border) {
+static void printCharMap(const CharMap *const charMap, const bool border) {
 	const unsigned int width = charMap->width, height = charMap->height;
 	const VTChar *const chars = charMap->chars;
 	const uint8_t *t;
 	uint8_t *const buffer = malloc(sizeof(uint8_t)+width*sizeof(VTChar));
 
 	if(border) {
-		vtPuts("┌");
+		lputs("┌");
 		for(unsigned int x = 0; x < width-1; x++) {
-			vtPuts("─");
+			lputs("─");
 		}
-		vtPuts("─┐\n");
+		lputs("─┐\n");
 		for(unsigned y = 0; y < height; y++) {
 			for(unsigned int i = 0, x = 0; x < width; x++) {
 				t = (uint8_t *)&chars[x+y*width];
@@ -170,15 +170,15 @@ static void vtPrintCharMap(const CharMap *const charMap, const bool border) {
 				}
 				buffer[i] = '\0';
 			}
-			vtPuts("│");
-			vtPuts((char *)buffer);
-			vtPuts("│\n");
+			lputs("│");
+			lputs((char *)buffer);
+			lputs("│\n");
 		}
-		vtPuts("└");
+		lputs("└");
 		for(unsigned int x = 0; x < width-1; x++) {
-			vtPuts("─");
+			lputs("─");
 		}
-		vtPuts("─┘\n");
+		lputs("─┘\n");
 	} else {
 		for(unsigned int y = 0; y < height; y++) {
 			for(unsigned int i = 0, x = 0; x < width; x++) {
@@ -208,7 +208,7 @@ static void vtPrintCharMap(const CharMap *const charMap, const bool border) {
 
 #endif
 
-static unsigned int vtPrintStringCharMap(const CharMap *const charMap, const bool border, uint8_t **const utf8String) {
+static unsigned int printStringCharMap(const CharMap *const charMap, const bool border, uint8_t **const utf8String) {
 	const unsigned int width = charMap->width, height = charMap->height;
 	const VTChar *const chars = charMap->chars;
 	const uint8_t *t;
@@ -303,8 +303,8 @@ static unsigned int vtPrintStringCharMap(const CharMap *const charMap, const boo
 	return length;
 }
 
-static void vtStamp(const CharMap *const charMap, const CharMap *const sprite, int spriteX, int spriteY) {
-	vtNormalizePosition(charMap, sprite, spriteX, spriteY, spriteX, spriteY);
+static void stamp(const CharMap *const charMap, const CharMap *const sprite, int spriteX, int spriteY) {
+	normalizePosition(charMap, sprite, spriteX, spriteY, spriteX, spriteY);
 	for(unsigned int y = 0; y < sprite->height; y++) {
 		for(unsigned int x = 0; x < sprite->width; x++) {
 			if(sprite->chars[x+y*sprite->width] && spriteX+(int)x >= 0 && spriteX+(int)x < (int)charMap->width && spriteY+(int)y >= 0 && spriteY+(int)y < (int)charMap->height) {
@@ -314,8 +314,8 @@ static void vtStamp(const CharMap *const charMap, const CharMap *const sprite, i
 	}
 }
 
-static void vtMask(const BoolMap *const boolMap, const CharMap *const sprite, int spriteX, int spriteY) {
-	vtNormalizePosition(boolMap, sprite, spriteX, spriteY, spriteX, spriteY);
+static void mask(const BoolMap *const boolMap, const CharMap *const sprite, int spriteX, int spriteY) {
+	normalizePosition(boolMap, sprite, spriteX, spriteY, spriteX, spriteY);
 	for(unsigned int y = 0; y < sprite->height; y++) {
 		for(unsigned int x = 0; x < sprite->width; x++) {
 			if(sprite->chars[x+y*sprite->width] && spriteX+(int)x >= 0 && spriteX+(int)x < (int)boolMap->width && spriteY+(int)y >= 0 && spriteY+(int)y < (int)boolMap->height) {
@@ -325,18 +325,18 @@ static void vtMask(const BoolMap *const boolMap, const CharMap *const sprite, in
 	}
 }
 
-static void vtRender(const CharMap *const charMap, const unsigned int objsLength, const Obj *const *const objs, bool clearCharmap) {
+static void render(const CharMap *const charMap, const unsigned int objsLength, const Obj *const *const objs, bool clearCharmap) {
 	if(clearCharmap) {
-		vtClearCharMap(charMap);
+		clearCharMap(charMap);
 	}
 	for(unsigned int i = 0; i < objsLength; i++) {
 		if(objs[i]->visible) {
-			vtStamp(charMap, objs[i]->currentSprite, objs[i]->x, objs[i]->y);
+			stamp(charMap, objs[i]->currentSprite, objs[i]->x, objs[i]->y);
 		}
 	}
 }
 
-static void vtLine(const CharMap *const canvas, const unsigned short penSize, const VTChar penChar, int x0, int y0, const int x1, const int y1) {
+static void line(const CharMap *const canvas, const unsigned short penSize, const VTChar penChar, int x0, int y0, const int x1, const int y1) {
 	CharMap stroke;
 	switch(penSize) {
 		default:
@@ -363,7 +363,7 @@ static void vtLine(const CharMap *const canvas, const unsigned short penSize, co
 	int t, err = (dx > dy ? dx : -dy)/2;
 	const short stepX = x0 < x1 ? (short)1 : (short)-1, stepY = y0 < y1 ? (short)1 : (short)-1;
 	while(1) {
-		vtStamp(canvas, &stroke, x0, y0);
+		stamp(canvas, &stroke, x0, y0);
 		if(x0 == x1 && y0 == y1) {
 			break;
 		}
@@ -380,7 +380,7 @@ static void vtLine(const CharMap *const canvas, const unsigned short penSize, co
 }
 
 //----MISC----
-void about() {
+void vtAbout() {
 	puts("                 .:Visual T:.\n"
 			 "         ver " VISUALT_VERSION "  15 December 2019\n"
 			 "                 GNU LGPL-3.0\n"
@@ -395,7 +395,7 @@ void about() {
 }
 
 //----INITIALIZATION----
-void initializeBlankObj(Obj *const obj, const unsigned int sizesLength, const VTSizes sizes) {
+void vtInitializeBlank(Obj *const obj, const unsigned int sizesLength, const VTSizes sizes) {
 	assert(sizesLength > 0);
 
 	obj->length = sizesLength;
@@ -403,20 +403,20 @@ void initializeBlankObj(Obj *const obj, const unsigned int sizesLength, const VT
 	for(unsigned int i = 0; i < sizesLength; i++) {
 		assert(sizes[i][0] > 0);
 		assert(sizes[i][1] > 0);
-		vtInitializeCharMap(&obj->sprites[i], sizes[i][0], sizes[i][1]);
-		vtClearCharMap(&obj->sprites[i]);
+		initializeCharMap(&obj->sprites[i], sizes[i][0], sizes[i][1]);
+		clearCharMap(&obj->sprites[i]);
 	}
-	vtInitializeObj(obj);
+	initializeObj(obj);
 }
 
-void initializeArrayObj(Obj *const obj, const VTChar *const v) {
+void vtInitializeArray(Obj *const obj, const VTChar *const v) {
 	CharMap *sprite;
 
 	obj->length = v[0];
 	obj->sprites = malloc(obj->length*sizeof(CharMap));
 	for(unsigned int i = 0, j = 1; i < obj->length; i++) {
 		sprite = &obj->sprites[i];
-		vtInitializeCharMap(sprite, v[j], v[j+1]);
+		initializeCharMap(sprite, v[j], v[j+1]);
 		j += 2;
 		for(unsigned int y = 0; y < sprite->height; y++) {
 			for(unsigned int x = 0; x < sprite->width; x++, j++) {
@@ -424,10 +424,10 @@ void initializeArrayObj(Obj *const obj, const VTChar *const v) {
 			}
 		}
 	}
-	vtInitializeObj(obj);
+	initializeObj(obj);
 }
 
-void initializeFileObj(Obj *const obj, const char path[const]) {
+void vtInitializeFile(Obj *const obj, const char path[const]) {
 	unsigned int vLength = 0;
 	VTChar *v;
 	FILE *const file = fopen(path, "r");
@@ -448,127 +448,127 @@ void initializeFileObj(Obj *const obj, const char path[const]) {
 		// }
 		// putchar('\n');
 
-		initializeArrayObj(obj, v);
+		vtInitializeArray(obj, v);
 		free(v);
 	}
 }
 
-void initializeStringObj(Obj *const obj, unsigned int utf8StringsLength, const VTStrs utf8Strings) {
+void vtInitializeString(Obj *const obj, unsigned int utf8StringsLength, const VTStrs utf8Strings) {
 	assert(utf8StringsLength > 0);
 
 	obj->length = utf8StringsLength;
 	obj->sprites = malloc(utf8StringsLength*sizeof(CharMap));
 	for(unsigned int i = 0; i < utf8StringsLength; i++) {
-		vtInitializeStringCharMap(&obj->sprites[i], utf8Strings[i]);
+		initializeStringCharMap(&obj->sprites[i], utf8Strings[i]);
 	}
-	vtInitializeObj(obj);
+	initializeObj(obj);
 }
 
-void initializeObjObj(Obj *const obj, const Obj *const src) {
+void vtInitializeObj(Obj *const obj, const Obj *const src) {
 	CharMap *sprite;
 
 	*obj = *src;
 	obj->sprites = malloc(obj->length*sizeof(CharMap));
 	for(unsigned int i = 0; i < obj->length; i++) {
 		sprite = &obj->sprites[i];
-		vtInitializeCharMap(sprite, src->sprites[i].width, src->sprites[i].height);
-		memcpy(sprite->chars, src->sprites[i].chars, vtSizeofChars(sprite));
+		initializeCharMap(sprite, src->sprites[i].width, src->sprites[i].height);
+		memcpy(sprite->chars, src->sprites[i].chars, sizeofChars(sprite));
 	}
 	obj->currentSprite = &obj->sprites[src->currentSprite-src->sprites];
 }
 
-void releaseObjs(const unsigned int objsLength, const VTObjs objs) {
+void vtRelease(const unsigned int objsLength, const VTObjs objs) {
 	for(unsigned int i = 0; i < objsLength; i++) {
 		for(unsigned int j = 0; j < objs[i]->length; j++) {
-			vtFreeCharMap(&objs[i]->sprites[j]);
+			freeCharMap(&objs[i]->sprites[j]);
 		}
 		free(objs[i]->sprites);
 	}
 }
 
-void cloneSprite(const Obj *const dest, const unsigned int spriteDest, const Obj *const src, const unsigned int spriteSrc) {
+void vtCloneSprite(const Obj *const dest, const unsigned int spriteDest, const Obj *const src, const unsigned int spriteSrc) {
 	assert(spriteSrc < src->length);
 	assert(spriteDest < dest->length);
 
-	vtFreeCharMap(&dest->sprites[spriteDest]);
+	freeCharMap(&dest->sprites[spriteDest]);
 	dest->sprites[spriteDest] = src->sprites[spriteSrc];
-	vtInitializeCharMap(&dest->sprites[spriteDest], dest->sprites[spriteDest].width, dest->sprites[spriteDest].height);
-	memcpy(dest->sprites[spriteDest].chars, src->sprites[spriteSrc].chars, vtSizeofChars(&dest->sprites[spriteDest]));
+	initializeCharMap(&dest->sprites[spriteDest], dest->sprites[spriteDest].width, dest->sprites[spriteDest].height);
+	memcpy(dest->sprites[spriteDest].chars, src->sprites[spriteSrc].chars, sizeofChars(&dest->sprites[spriteDest]));
 }
 
-void resize(Obj *const obj, const unsigned int width, const unsigned int height) {
+void vtResize(Obj *const obj, const unsigned int width, const unsigned int height) {
 	assert(width > 0);
 	assert(height > 0);
 
-	vtFreeCharMap(obj->currentSprite);
-	vtInitializeCharMap(obj->currentSprite, width, height);
-	clear(obj);
+	freeCharMap(obj->currentSprite);
+	initializeCharMap(obj->currentSprite, width, height);
+	vtClear(obj);
 }
 
 //----REFRESH----
-void render(const Obj *const canvas, const unsigned int objsLength, const VTObjs objs) {
-	vtRender(canvas->currentSprite, objsLength, objs, true);
+void vtRender(const Obj *const canvas, const unsigned int objsLength, const VTObjs objs) {
+	render(canvas->currentSprite, objsLength, objs, true);
 }
 
-void stamp(const Obj *const canvas, const unsigned int objsLength, const VTObjs objs) {
-	vtRender(canvas->currentSprite, objsLength, objs, false);
+void vtStamp(const Obj *const canvas, const unsigned int objsLength, const VTObjs objs) {
+	render(canvas->currentSprite, objsLength, objs, false);
 }
 
-void print(const Obj *const canvas, const bool border) {
-	vtPrintCharMap(canvas->currentSprite, border);
+void vtPrint(const Obj *const canvas, const bool border) {
+	printCharMap(canvas->currentSprite, border);
 }
 
-unsigned int printToString(const Obj *const canvas, const bool border, uint8_t **const utf8String) {
-	return vtPrintStringCharMap(canvas->currentSprite, border, utf8String);
+unsigned int vtPrintToString(const Obj *const canvas, const bool border, uint8_t **const utf8String) {
+	return printStringCharMap(canvas->currentSprite, border, utf8String);
 }
 
 //----SPRITE----
-unsigned int sprites(const Obj *const obj) {
+unsigned int vtSprites(const Obj *const obj) {
 	return obj->length;
 }
 
-unsigned int spriteInd(const Obj *const obj) {
-	return obj->currentSprite-obj->sprites;
+unsigned int vtSpriteInd(const Obj *const obj) {
+	return (unsigned int)(obj->currentSprite-obj->sprites);
 }
 
-void nextSprite(Obj *const obj) {
+void vtNextSprite(Obj *const obj) {
 	obj->currentSprite = &(obj->sprites[(obj->currentSprite-obj->sprites+1)%obj->length]);
 }
 
-void precSprite(Obj *const obj) {
+void vtPrecSprite(Obj *const obj) {
 	obj->currentSprite = &(obj->sprites[(obj->currentSprite-obj->sprites+obj->length-1)%obj->length]);
 }
 
-void setSprite(Obj *const obj, const unsigned int sprite) {
+void vtSetSprite(Obj *const obj, const unsigned int sprite) {
 	assert(sprite < obj->length);
 
 	obj->currentSprite = &obj->sprites[sprite];
 }
 
-unsigned int width(const Obj *const obj) {
+unsigned int vtWidth(const Obj *const obj) {
 	return obj->currentSprite->width;
 }
 
-unsigned int height(const Obj *const obj) {
+unsigned int vtHeight(const Obj *const obj) {
 	return obj->currentSprite->height;
 }
 
-void setText(Obj *const obj, const VTStr utf8Text) {
-	vtFreeCharMap(obj->currentSprite);
-	vtInitializeStringCharMap(obj->currentSprite, utf8Text);
+void vtSetText(Obj *const obj, const VTStr utf8Text) {
+	freeCharMap(obj->currentSprite);
+	initializeStringCharMap(obj->currentSprite, utf8Text);
 }
 
-void clear(const Obj *const canvas) {
-	vtClearCharMap(canvas->currentSprite);
+void vtClear(const Obj *const canvas) {
+	clearCharMap(canvas->currentSprite);
 }
 
-void fill(const Obj *canvas, const VTChar fillChar) {
+void vtFill(const Obj *canvas, const VTChar fillChar) {
 	for(unsigned int i = canvas->currentSprite->width*canvas->currentSprite->height; i-- > 0;) {
 		canvas->currentSprite->chars[i] = fillChar;
 	}
 }
 
-void overlay(const Obj *const dest, const unsigned int spriteDest, const Obj *const src, const unsigned int spriteSrc) {
+void vtOverlay(const Obj *const dest, const unsigned int spriteDest, const Obj *const src, const unsigned int spriteSrc) {
 	assert(spriteSrc < src->length);
 	assert(spriteDest < dest->length);
 	assert(src->sprites[spriteSrc].width == dest->sprites[spriteDest].width);
@@ -581,7 +581,7 @@ void overlay(const Obj *const dest, const unsigned int spriteDest, const Obj *co
 	}
 }
 
-void printAxes(const Obj *const canvas) {
+void vtPrintAxes(const Obj *const canvas) {
 	VTChar *const chars = canvas->currentSprite->chars;
 	const unsigned int width = canvas->currentSprite->width, height = canvas->currentSprite->height;
 
@@ -599,85 +599,85 @@ void printAxes(const Obj *const canvas) {
 }
 
 //----OBJ----
-bool visible(const Obj *const obj) {
+bool vtVisible(const Obj *const obj) {
 	return obj->visible;
 }
 
-void show(Obj *const obj) {
+void vtShow(Obj *const obj) {
 	obj->visible = true;
 }
 
-void hide(Obj *const obj) {
+void vtHide(Obj *const obj) {
 	obj->visible = false;
 }
 
-void setVisibility(Obj *const obj, const bool visible) {
+void vtSetVisibility(Obj *const obj, const bool visible) {
 	obj->visible = visible;
 }
 
 //----PEN----
-VTChar penChar(const Obj *const obj) {
+VTChar vtPenChar(const Obj *const obj) {
 	return obj->penChar;
 }
 
-unsigned short penSize(const Obj *const obj) {
+unsigned short vtPenSize(const Obj *const obj) {
 	return obj->penSize;
 }
 
-void setPenSize(Obj *const obj, const unsigned short size) {
+void vtSetPenSize(Obj *const obj, const unsigned short size) {
 	obj->penSize = size <= 5 ? size : (unsigned short)5;
 }
 
-void setPenChar(Obj *const obj, const VTChar penChar) {
+void vtSetPenChar(Obj *const obj, const VTChar penChar) {
 	obj->penChar = penChar;
 }
 
 //----MOVE----
-int xPosition(const Obj *const obj) {
+int vtXPosition(const Obj *const obj) {
 	return obj->x;
 }
 
-int yPosition(const Obj *const obj) {
+int vtYPosition(const Obj *const obj) {
 	return obj->y;
 }
 
-void gotoXY(const Obj *const canvas, Obj *const obj, const int x, const int y) {
+void vtGotoXY(const Obj *const canvas, Obj *const obj, const int x, const int y) {
 	if(canvas) {
-		vtLine(canvas->currentSprite, obj->penSize, obj->penChar, obj->x, obj->y, x, y);
+		line(canvas->currentSprite, obj->penSize, obj->penChar, obj->x, obj->y, x, y);
 	}
 	obj->x = x;
 	obj->y = y;
 }
 
-void gotoX(const Obj *const canvas, Obj *const obj, const int x) {
+void vtGotoX(const Obj *const canvas, Obj *const obj, const int x) {
 	if(canvas) {
-		vtLine(canvas->currentSprite, obj->penSize, obj->penChar, obj->x, obj->y, x, obj->y);
+		line(canvas->currentSprite, obj->penSize, obj->penChar, obj->x, obj->y, x, obj->y);
 	}
 	obj->x = x;
 }
 
-void gotoY(const Obj *const canvas, Obj *const obj, const int y) {
+void vtGotoY(const Obj *const canvas, Obj *const obj, const int y) {
 	if(canvas) {
-		vtLine(canvas->currentSprite, obj->penSize, obj->penChar, obj->x, obj->y, obj->x, y);
+		line(canvas->currentSprite, obj->penSize, obj->penChar, obj->x, obj->y, obj->x, y);
 	}
 	obj->y = y;
 }
 
-void changeX(const Obj *const canvas, Obj *const obj, const int x) {
+void vtChangeX(const Obj *const canvas, Obj *const obj, const int x) {
 	if(canvas) {
-		vtLine(canvas->currentSprite, obj->penSize, obj->penChar, obj->x, obj->y, obj->x+x, obj->y);
+		line(canvas->currentSprite, obj->penSize, obj->penChar, obj->x, obj->y, obj->x+x, obj->y);
 	}
 	obj->x += x;
 }
 
-void changeY(const Obj *const canvas, Obj *const obj, const int y) {
+void vtChangeY(const Obj *const canvas, Obj *const obj, const int y) {
 	if(canvas) {
-		vtLine(canvas->currentSprite, obj->penSize, obj->penChar, obj->x, obj->y, obj->x, obj->y-y);
+		line(canvas->currentSprite, obj->penSize, obj->penChar, obj->x, obj->y, obj->x, obj->y-y);
 	}
 	obj->y += y;
 }
 
-void align(Obj *const obj, const unsigned char position) {
+void vtAlign(Obj *const obj, const unsigned char position) {
 	switch(position) {
 		default:
 			return;
@@ -712,38 +712,38 @@ void align(Obj *const obj, const unsigned char position) {
 	}
 }
 
-bool isTouching(const Obj *const canvas, const Obj *const obj, unsigned int objsLength, const VTObjs objs) {
+bool vtIsTouching(const Obj *const canvas, const Obj *const obj, unsigned int objsLength, const VTObjs objs) {
 	const CharMap *const sprite = obj->currentSprite;
 	int spriteX, spriteY;
 
 	if(obj->visible) {
 		const BoolMap boolMap = (BoolMap){malloc(canvas->currentSprite->width*canvas->currentSprite->height*sizeof(bool)), canvas->currentSprite->width, canvas->currentSprite->height};
-		memset(boolMap.chars, false, vtSizeofChars(&boolMap)/sizeof(VTChar)*sizeof(bool));
+		memset(boolMap.chars, false, sizeofChars(&boolMap)/sizeof(VTChar)*sizeof(bool));
 		for(unsigned int i = 0; i < objsLength; i++) {
 			if(objs[i]->visible) {
-				vtMask(&boolMap, objs[i]->currentSprite, objs[i]->x, objs[i]->y);
+				mask(&boolMap, objs[i]->currentSprite, objs[i]->x, objs[i]->y);
 			}
 		}
-		vtNormalizePosition(&boolMap, sprite, obj->x, obj->y, spriteX, spriteY);
+		normalizePosition(&boolMap, sprite, obj->x, obj->y, spriteX, spriteY);
 		for(unsigned int y = 0; y < sprite->height; y++) {
 			for(unsigned int x = 0; x < sprite->width; x++) {
 				if(sprite->chars[x+y*sprite->width] && spriteX+(int)x >= 0 && spriteX+(int)x < (int)boolMap.width && spriteY+(int)y >= 0 && spriteY+(int)y < (int)boolMap.height && boolMap.chars[(spriteX+x)+(spriteY+y)*boolMap.width]) {
-					vtFreeCharMap(&boolMap);
+					freeCharMap(&boolMap);
 					return true;
 				}
 			}
 		}
-		vtFreeCharMap(&boolMap);
+		freeCharMap(&boolMap);
 	}
 	return false;
 }
 
-bool isTouchingChar(const Obj *const canvas, const Obj *const obj, const VTChar character) {
+bool vtIsTouchingChar(const Obj *const canvas, const Obj *const obj, const VTChar character) {
 	const CharMap *const charMap = canvas->currentSprite, *const sprite = obj->currentSprite;
 	int spriteX, spriteY;
 
 	if(obj->visible) {
-		vtNormalizePosition(charMap, sprite, obj->x, obj->y, spriteX, spriteY);
+		normalizePosition(charMap, sprite, obj->x, obj->y, spriteX, spriteY);
 		for(unsigned int y = 0; y < sprite->height; y++) {
 			for(unsigned int x = 0; x < sprite->width; x++) {
 				if(sprite->chars[x+y*sprite->width] && spriteX+(int)x >= 0 && spriteX+(int)x < (int)charMap->width && spriteY+(int)y >= 0 && spriteY+(int)y < (int)charMap->height && charMap->chars[(spriteX+x)+(spriteY+y)*charMap->width] == character) {
@@ -755,12 +755,12 @@ bool isTouchingChar(const Obj *const canvas, const Obj *const obj, const VTChar 
 	return false;
 }
 
-bool isOutside(const Obj *const canvas, const Obj *const obj) {
+bool vtIsOutside(const Obj *const canvas, const Obj *const obj) {
 	const CharMap *const charMap = canvas->currentSprite, *const sprite = obj->currentSprite;
 	int spriteX, spriteY;
 
 	if(obj->visible) {
-		vtNormalizePosition(charMap, sprite, obj->x, obj->y, spriteX, spriteY);
+		normalizePosition(charMap, sprite, obj->x, obj->y, spriteX, spriteY);
 		for(unsigned int y = 0; y < sprite->height; y++) {
 			for(unsigned int x = 0; x < sprite->width; x++) {
 				if(sprite->chars[x+y*sprite->width] && !(spriteX+(int)x >= 0 && spriteX+(int)x < (int)charMap->width && spriteY+(int)y >= 0 && spriteY+(int)y < (int)charMap->height)) {

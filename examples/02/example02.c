@@ -1,19 +1,18 @@
 #include <stdio.h>
 #include <time.h>
-#include "visualt/visualt.h"
+#include "visualt/visualtUnprefixed.h"
 #include "getch.h"
 
-typedef struct Canvas Canvas;
-typedef struct Obj Obj;
+typedef struct vtObj Obj;
 
 #define rewindScreen() fputs("\033[0;0H", stdout)
 
 int main() {
 	Obj canvas, cat, text;
 
-	initializeBlankObj(&canvas, 1, LTSIZES{{100, 30}});
-	initializeFileObj(&cat, "res/fallingCat.obj");
-	initializeStringObj(&text, 1, LTSTRS{"press a button to make a cat land"});
+	initializeBlank(&canvas, 1, LTSIZES{{100, 30}});
+	initializeFile(&cat, "res/fallingCat.obj");
+	initializeString(&text, 1, LTSTRS{"press a button to make a cat land"});
 
 	while(1) {
 		render(&canvas, 1, LTOBJS{&text});
@@ -31,7 +30,7 @@ int main() {
 		}
 	}
 
-	releaseObjs(3, LTOBJS{&canvas, &cat, &text});
+	release(3, LTOBJS{&canvas, &cat, &text});
 
 	return 0;
 }

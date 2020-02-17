@@ -1,4 +1,4 @@
-add_executable(example01 main.c)
+add_executable(example01 example01.c)
 set_target_properties(example01
         PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})

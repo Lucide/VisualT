@@ -1,18 +1,17 @@
-#include "visualt/visualt.h"
+#include "visualt/visualtUnprefixed.h"
 #include <stdio.h>
 #include <stdalign.h>
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct CharMap CharMap;
-typedef struct Canvas Canvas;
-typedef struct Obj Obj;
+typedef struct vtCharMap CharMap;
+typedef struct vtObj Obj;
 
 void penTest(const char penChar[const]) {
 	puts("pen stroke test:");
 	Obj canvas, p;
-	initializeBlankObj(&canvas, 1, LTSIZES{{100, 20}});
-	initializeStringObj(&p, 1, LTSTRS{"p"});
+	initializeBlank(&canvas, 1, LTSIZES{{100, 20}});
+	initializeString(&p, 1, LTSTRS{"p"});
 	setPenChar(&p, LTCHAR penChar);
 
 	gotoXY(NULL, &p, -57, 7);
@@ -36,16 +35,16 @@ void penTest(const char penChar[const]) {
 
 	// render(&canvas, 0, NULL);
 	print(&canvas, true);
-	releaseObjs(2, LTOBJS{&canvas, &p});
+	release(2, LTOBJS{&canvas, &p});
 	puts("ok");
 }
 
 void alignTest() {
 	puts("align test:");
 	Obj canvas, target, viewfinder;
-	initializeBlankObj(&canvas, 1, LTSIZES{{60, 10}});
-	initializeStringObj(&target, 1, LTSTRS{"0"});
-	initializeStringObj(&viewfinder, 1, LTSTRS{"██\n██"});
+	initializeBlank(&canvas, 1, LTSIZES{{60, 10}});
+	initializeString(&target, 1, LTSTRS{"0"});
+	initializeString(&viewfinder, 1, LTSTRS{"██\n██"});
 
 	// top left 2x2
 	gotoXY(NULL, &viewfinder, -28, 3);
@@ -151,7 +150,7 @@ void alignTest() {
 
 	print(&canvas, true);
 
-	releaseObjs(3, LTOBJS{&viewfinder, &target, &canvas});
+	release(3, LTOBJS{&viewfinder, &target, &canvas});
 	puts("ok");
 }
 
@@ -160,8 +159,8 @@ void drawToStringTest() {
 	Obj canvas, a;
 	unsigned int length;
 	unsigned char *s;
-	initializeBlankObj(&canvas, 1, LTSIZES{{60, 16}});
-	initializeStringObj(&a, 1, LTSTRS{"▀▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀\n▄▀─▄▀─▄▀─▄▀─▄▀─▄▀─▄▀─▄\n▀─▄▀─▄▀─▄▀─▄▀─▄▀─▄▀─▄▀\n▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀▄\n▀▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀\n▄▀─▄▀─▄▀─▄▀─▄▀"});
+	initializeBlank(&canvas, 1, LTSIZES{{60, 16}});
+	initializeString(&a, 1, LTSTRS{"▀▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀\n▄▀─▄▀─▄▀─▄▀─▄▀─▄▀─▄▀─▄\n▀─▄▀─▄▀─▄▀─▄▀─▄▀─▄▀─▄▀\n▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀▄\n▀▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀▄─▀\n▄▀─▄▀─▄▀─▄▀─▄▀"});
 
 	stamp(&canvas, 1, LTOBJS{&a});
 	length = printToString(&canvas, true, &s);
@@ -171,7 +170,7 @@ void drawToStringTest() {
 	printf("length: %d\n%s\n", length, s);
 	free(s);
 
-	releaseObjs(2, LTOBJS{&a, &canvas});
+	release(2, LTOBJS{&a, &canvas});
 	puts("ok");
 }
 
@@ -179,10 +178,10 @@ void collisionTest() {
 	puts("collision test:");
 	Obj canvas, penLayer, pot, circle;
 
-	initializeBlankObj(&canvas, 1, LTSIZES{{60, 16}});
-	initializeObjObj(&penLayer, &canvas);
-	initializeStringObj(&pot, 1, LTSTRS{"|░░░░|\n\\░░░░/"});
-	initializeStringObj(&circle, 1, LTSTRS{"\v\v\v____\n\v.'\v\v\v\v`.\n/\v\v\v\v\v\v\v\v\\\n|\v\v\v\v\v\v\v\v|\n\\\v\v\v\v\v\v\v\v/\n\v`.____.'"});
+	initializeBlank(&canvas, 1, LTSIZES{{60, 16}});
+	initializeObj(&penLayer, &canvas);
+	initializeString(&pot, 1, LTSTRS{"|░░░░|\n\\░░░░/"});
+	initializeString(&circle, 1, LTSTRS{"\v\v\v____\n\v.'\v\v\v\v`.\n/\v\v\v\v\v\v\v\v\\\n|\v\v\v\v\v\v\v\v|\n\\\v\v\v\v\v\v\v\v/\n\v`.____.'"});
 
 	setPenSize(&pot, 2);
 	setPenChar(&pot, LTCHAR "░");
@@ -237,16 +236,16 @@ void collisionTest() {
 	putchar('\n');
 	printf("isTouching(&canvas, &circle, 1, VTOBJS{&circle})=%d\n", isTouching(&canvas, &circle, 1, LTOBJS{&circle}));
 
-	releaseObjs(4, LTOBJS{&pot, &circle, &penLayer, &canvas});
+	release(4, LTOBJS{&pot, &circle, &penLayer, &canvas});
 	puts("ok");
 }
 
 void cloneResizeTest() {
 	puts("clone resize test:");
 	Obj canvas, a;
-	initializeBlankObj(&canvas, 2, LTSIZES{{60, 10},
+	initializeBlank(&canvas, 2, LTSIZES{{60, 10},
 																				 {1,  1}});
-	initializeStringObj(&a, 2, LTSTRS{"║█║█║║█║█║█║║█║█║║█║█║█\n║█║█║║█║█║█║║█║█║║█║█║█\n║║║║║║║║║║║║║║║║║║║║║║║\n╚╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩", "\v\v\v\v\v\v\v\v\v\v\v\v╭━━━\n\v\v\v╭━━╮\v\v\v\v\v┃RAWR\n\v\v╭╯┊◣╰━━━╮\v╰┳━━\n\v\v┃┊┊┊╱▽▽▽┛\v\v┃\v\v\n\v\v┃┊┊┊▏━━━━━━╯\v\v\n━━╯┊┊┊╲△△△┓\v\v\v\v\v\n┊┊┊┊╭━━━━━╯\v\v\v\v\v"});
+	initializeString(&a, 2, LTSTRS{"║█║█║║█║█║█║║█║█║║█║█║█\n║█║█║║█║█║█║║█║█║║█║█║█\n║║║║║║║║║║║║║║║║║║║║║║║\n╚╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩", "\v\v\v\v\v\v\v\v\v\v\v\v╭━━━\n\v\v\v╭━━╮\v\v\v\v\v┃RAWR\n\v\v╭╯┊◣╰━━━╮\v╰┳━━\n\v\v┃┊┊┊╱▽▽▽┛\v\v┃\v\v\n\v\v┃┊┊┊▏━━━━━━╯\v\v\n━━╯┊┊┊╲△△△┓\v\v\v\v\v\n┊┊┊┊╭━━━━━╯\v\v\v\v\v"});
 
 	print(&canvas, true);
 	setSprite(&canvas, 1);
@@ -263,26 +262,26 @@ void cloneResizeTest() {
 	setSprite(&canvas, 1);
 	print(&canvas, true);
 
-	releaseObjs(2, LTOBJS{&a, &canvas});
+	release(2, LTOBJS{&a, &canvas});
 	puts("ok");
 }
 
 void setSpriteTextTest() {
 	puts("setSpriteText test:");
 	Obj a;
-	initializeStringObj(&a, 1, LTSTRS{"║█║█║║█║█║█║║█║█║║█║█║█\n║█║█║║█║█║█║║█║█║║█║█║█\n║║║║║║║║║║║║║║║║║║║║║║║\n╚╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩"});
+	initializeString(&a, 1, LTSTRS{"║█║█║║█║█║█║║█║█║║█║█║█\n║█║█║║█║█║█║║█║█║║█║█║█\n║║║║║║║║║║║║║║║║║║║║║║║\n╚╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩"});
 	print(&a, true);
 	setText(&a, LTSTR "\v\v\v\v\v\v\v\v\v\v\v\v╭━━━\n\v\v\v╭━━╮\v\v\v\v\v┃RAWR\n\v\v╭╯┊◣╰━━━╮\v╰┳━━\n\v\v┃┊┊┊╱▽▽▽┛\v\v┃\v\v\n\v\v┃┊┊┊▏━━━━━━╯\v\v\n━━╯┊┊┊╲△△△┓\v\v\v\v\v\n┊┊┊┊╭━━━━━╯\v\v\v\v\v");
 	print(&a, true);
 
-	releaseObjs(1, LTOBJS{&a});
+	release(1, LTOBJS{&a});
 	puts("ok");
 }
 
 void dynamicMemoryTest() {
 	puts("dynamic memory test:");
 
-	puts("1-initializeBlankObj() with dynamic array of pointer to (dynamic) unsigned int[2]");
+	puts("1-initializeBlank() with dynamic array of pointer to (dynamic) unsigned int[2]");
 	{
 		Obj a;
 		unsigned int (*v)[2] = malloc(2*sizeof(unsigned int (*)[2]));
@@ -290,15 +289,15 @@ void dynamicMemoryTest() {
 		v[0][1] = 2;
 		v[1][0] = 2;
 		v[1][1] = 1;
-		initializeBlankObj(&a, 2, (VTSizes)v);
+		initializeBlank(&a, 2, (VTSizes)v);
 		free(v);
 		print(&a, true);
 		nextSprite(&a);
 		print(&a, true);
-		releaseObjs(1, LTOBJS{&a});
+		release(1, LTOBJS{&a});
 	}
 
-	puts("2-initializeArrayObj() with dynamic array of unsigned int");
+	puts("2-initializeArray() with dynamic array of unsigned int");
 	{
 		Obj a;
 		VTChar *v = malloc(4*sizeof(VTChar));
@@ -306,13 +305,13 @@ void dynamicMemoryTest() {
 		v[1] = 1;
 		v[2] = 1;
 		v[3] = 0;
-		initializeArrayObj(&a, v);
+		initializeArray(&a, v);
 		free(v);
 		print(&a, true);
-		releaseObjs(1, LTOBJS{&a});
+		release(1, LTOBJS{&a});
 	}
 
-	puts("3-initializeStringObj() with dynamic array of pointer to (dynamic) char");
+	puts("3-initializeString() with dynamic array of pointer to (dynamic) char");
 	{
 		Obj a;
 		char **strings = malloc(2*sizeof(uint8_t *));
@@ -320,14 +319,14 @@ void dynamicMemoryTest() {
 		strcpy((char *)strings[0], "Hello");
 		strings[1] = malloc(7*sizeof(char));
 		strcpy((char *)strings[1], "World!");
-		initializeStringObj(&a, 2, (VTStrs)strings);
+		initializeString(&a, 2, (VTStrs)strings);
 		free(strings[0]);
 		free(strings[1]);
 		free(strings);
 		print(&a, true);
 		nextSprite(&a);
 		print(&a, true);
-		releaseObjs(1, LTOBJS{&a});
+		release(1, LTOBJS{&a});
 	}
 
 	puts("4-fill() with dynamic array of char");
@@ -335,29 +334,29 @@ void dynamicMemoryTest() {
 		char *c = malloc(4*sizeof(char));
 		strcpy(c, "▀");
 		Obj a;
-		initializeBlankObj(&a, 1, LTSIZES{{2, 2}});
+		initializeBlank(&a, 1, LTSIZES{{2, 2}});
 		fill(&a, LTCHAR c);
 		free(c);
 		print(&a, true);
-		releaseObjs(1, LTOBJS{&a});
+		release(1, LTOBJS{&a});
 	}
 
-	puts("5-initializeStringObj(), setY(), render() with dynamic array of pointer to (dynamic) Obj");
+	puts("5-initializeString(), setY(), render() with dynamic array of pointer to (dynamic) Obj");
 	{
 		Obj canvas;
-		initializeBlankObj(&canvas, 1, LTSIZES{{10, 5}});
+		initializeBlank(&canvas, 1, LTSIZES{{10, 5}});
 		Obj **objs = malloc(2*sizeof(Obj *));
 		objs[0] = malloc(sizeof(Obj));
-		initializeStringObj(objs[0], 1, LTSTRS{"Hello"});
+		initializeString(objs[0], 1, LTSTRS{"Hello"});
 		gotoY(NULL, objs[0], 1);
 		objs[1] = malloc(sizeof(Obj));
-		initializeStringObj(objs[1], 1, LTSTRS{"World!"});
+		initializeString(objs[1], 1, LTSTRS{"World!"});
 		gotoY(NULL, objs[1], -1);
 
 		render(&canvas, 2, (VTObjs)objs);
 		print(&canvas, true);
 
-		releaseObjs(3, LTOBJS{&canvas, objs[0], objs[1]});
+		release(3, LTOBJS{&canvas, objs[0], objs[1]});
 		free(objs[0]);
 		free(objs[1]);
 		free(objs);

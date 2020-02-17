@@ -19,16 +19,16 @@ typedef const uint8_t *const *VTStrs;
 typedef const unsigned int (*VTSizes)[2];
 #define LTSIZES (VTSizes)(const unsigned int [][2])
 
-typedef const struct Obj *const *VTObjs;
-#define LTOBJS (VTObjs)(const struct Obj *const [])
+typedef const struct vtObj *const *VTObjs;
+#define LTOBJS (VTObjs)(const struct vtObj *const [])
 
-struct CharMap {
+struct vtCharMap {
 	VTChar *chars;
 	unsigned int width, height;
 };
 
-struct Obj {
-	struct CharMap *sprites, *currentSprite;
+struct vtObj {
+	struct vtCharMap *sprites, *currentSprite;
 	VTChar penChar;
 	int x, y;
 	unsigned int length;
@@ -37,56 +37,56 @@ struct Obj {
 };
 
 //----MISC----
-void about(); //print info about VisualT
+void vtAbout(); //print info about VisualT
 //----INITIALIZATION----
-void initializeBlankObj(struct Obj *obj, unsigned int sizesLength, VTSizes sizes);
-void initializeArrayObj(struct Obj *obj, const VTChar *v);
-void initializeFileObj(struct Obj *obj, const char path[const]);
-void initializeStringObj(struct Obj *obj, unsigned int utf8StringsLength, VTStrs utf8Strings);
-void initializeObjObj(struct Obj *obj, const struct Obj *src);
-void releaseObjs(unsigned int objsLength, VTObjs objs);
-void cloneSprite(const struct Obj *dest, unsigned int spriteDest, const struct Obj *src, unsigned int spriteSrc);
-void resize(struct Obj *obj, unsigned int width, unsigned int height);
+void vtInitializeBlank(struct vtObj *obj, unsigned int sizesLength, VTSizes sizes);
+void vtInitializeArray(struct vtObj *obj, const VTChar *v);
+void vtInitializeFile(struct vtObj *obj, const char path[const]);
+void vtInitializeString(struct vtObj *obj, unsigned int utf8StringsLength, VTStrs utf8Strings);
+void vtInitializeObj(struct vtObj *obj, const struct vtObj *src);
+void vtRelease(unsigned int objsLength, VTObjs objs);
+void vtCloneSprite(const struct vtObj *dest, unsigned int spriteDest, const struct vtObj *src, unsigned int spriteSrc);
+void vtResize(struct vtObj *obj, unsigned int width, unsigned int height);
 //----REFRESH----
-void render(const struct Obj *canvas, unsigned int objsLength, VTObjs objs);
-void stamp(const struct Obj *canvas, unsigned int objsLength, VTObjs objs);
-void print(const struct Obj *canvas, bool border);
-unsigned int printToString(const struct Obj *canvas, bool border, uint8_t **utf8String);
+void vtRender(const struct vtObj *canvas, unsigned int objsLength, VTObjs objs);
+void vtStamp(const struct vtObj *canvas, unsigned int objsLength, VTObjs objs);
+void vtPrint(const struct vtObj *canvas, bool border);
+unsigned int vtPrintToString(const struct vtObj *canvas, bool border, uint8_t **utf8String);
 //----SPRITE----
-unsigned int sprites(const struct Obj *obj);
-unsigned int spriteInd(const struct Obj *obj);
-void nextSprite(struct Obj *obj);
-void precSprite(struct Obj *obj);
-void setSprite(struct Obj *obj, unsigned int sprite);
-unsigned int width(const struct Obj *obj);
-unsigned int height(const struct Obj *obj);
-void setText(struct Obj *obj, VTStr utf8Text);
-void clear(const struct Obj *canvas);
-void fill(const struct Obj *canvas, VTChar fillChar);
-void overlay(const struct Obj *dest, unsigned int spriteDest, const struct Obj *src, unsigned int spriteSrc);
-void printAxes(const struct Obj *canvas);
+unsigned int vtSprites(const struct vtObj *obj);
+unsigned int vtSpriteInd(const struct vtObj *obj);
+void vtNextSprite(struct vtObj *obj);
+void vtPrecSprite(struct vtObj *obj);
+void vtSetSprite(struct vtObj *obj, unsigned int sprite);
+unsigned int vtWidth(const struct vtObj *obj);
+unsigned int vtHeight(const struct vtObj *obj);
+void vtSetText(struct vtObj *obj, VTStr utf8Text);
+void vtClear(const struct vtObj *canvas);
+void vtFill(const struct vtObj *canvas, VTChar fillChar);
+void vtOverlay(const struct vtObj *dest, unsigned int spriteDest, const struct vtObj *src, unsigned int spriteSrc);
+void vtPrintAxes(const struct vtObj *canvas);
 //----OBJ----
-bool visible(const struct Obj *obj);
-void show(struct Obj *obj);
-void hide(struct Obj *obj);
-void setVisibility(struct Obj *obj, bool visible);
+bool vtVisible(const struct vtObj *obj);
+void vtShow(struct vtObj *obj);
+void vtHide(struct vtObj *obj);
+void vtSetVisibility(struct vtObj *obj, bool visible);
 //----PEN----
-VTChar penChar(const struct Obj *obj);
-unsigned short penSize(const struct Obj *obj);
-void setPenSize(struct Obj *obj, unsigned short size);
-void setPenChar(struct Obj *obj, VTChar penChar);
+VTChar vtPenChar(const struct vtObj *obj);
+unsigned short vtPenSize(const struct vtObj *obj);
+void vtSetPenSize(struct vtObj *obj, unsigned short size);
+void vtSetPenChar(struct vtObj *obj, VTChar penChar);
 //----MOVE----
-int xPosition(const struct Obj *obj);
-int yPosition(const struct Obj *obj);
-void gotoXY(const struct Obj *canvas, struct Obj *obj, int x, int y);
-void gotoX(const struct Obj *canvas, struct Obj *obj, int x);
-void gotoY(const struct Obj *canvas, struct Obj *obj, int y);
-void changeX(const struct Obj *canvas, struct Obj *obj, int x);
-void changeY(const struct Obj *canvas, struct Obj *obj, int y);
-void align(struct Obj *obj, unsigned char position);
-bool isTouching(const struct Obj *canvas, const struct Obj *obj, unsigned int objsLength, VTObjs objs);
-bool isTouchingChar(const struct Obj *canvas, const struct Obj *obj, VTChar character);
-bool isOutside(const struct Obj *canvas, const struct Obj *obj);
+int vtXPosition(const struct vtObj *obj);
+int vtYPosition(const struct vtObj *obj);
+void vtGotoXY(const struct vtObj *canvas, struct vtObj *obj, int x, int y);
+void vtGotoX(const struct vtObj *canvas, struct vtObj *obj, int x);
+void vtGotoY(const struct vtObj *canvas, struct vtObj *obj, int y);
+void vtChangeX(const struct vtObj *canvas, struct vtObj *obj, int x);
+void vtChangeY(const struct vtObj *canvas, struct vtObj *obj, int y);
+void vtAlign(struct vtObj *obj, unsigned char position);
+bool vtIsTouching(const struct vtObj *canvas, const struct vtObj *obj, unsigned int objsLength, VTObjs objs);
+bool vtIsTouchingChar(const struct vtObj *canvas, const struct vtObj *obj, VTChar character);
+bool vtIsOutside(const struct vtObj *canvas, const struct vtObj *obj);
 
 #endif
 
