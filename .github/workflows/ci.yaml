@@ -14,8 +14,8 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Get latest CMake and ninja
-          # Using 'latest' branch, the latest CMake and ninja are installed.
-          uses: lukka/get-cmake@latest
+        # Using 'latest' branch, the latest CMake and ninja are installed.
+        uses: lukka/get-cmake@latest
 
       - name: Setup Python
         uses: actions/setup-python@v2
