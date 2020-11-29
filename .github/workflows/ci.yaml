@@ -13,9 +13,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Get latest CMake and ninja
+      - name: Setup CMake and ninja
         # Using 'latest' branch, the latest CMake and ninja are installed.
         uses: lukka/get-cmake@latest
+
+      - name: Setup Doxygen
+        run: sudo apt-get install -y doxygen
 
       - name: Setup Python
         uses: actions/setup-python@v2
