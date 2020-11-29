@@ -1,0 +1,50 @@
+name: ci
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get latest CMake and ninja
+          # Using 'latest' branch, the latest CMake and ninja are installed.
+          uses: lukka/get-cmake@latest
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install and cache python dependencies
+        uses: syphar/restore-pip-download-cache@v1
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run CMake+Ninja
+        uses: lukka/run-cmake@v3.2
+        with:
+          # Select the mode of the action. There are three different modes: CMakeListsTxtBasic: Run CMake using a CMakeLists.txt - Basic configuration, CMakeListsTxtAdvanced: Run CMake using a CMakeLists.txt - Advanced configuration, CMakeSettingsJson: Run CMake using a CMakeSettings.json of Visual Studio.
+          cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
+          # Select the build configuration, typically Debug or Release. Used by CMakeListsTxtBasic mode.
+          cmakeBuildType: Release
+          # Set the build directory, i.e. where CMake generates the build system files. Defaults to `$(Build.ArtifactStagingDirectory)` for CMakeLists.txt, and to `$(Build.ArtifactStagingDirectory)/<configuration-name>` for CMakeSettings.json. Used by any mode.
+          buildDirectory: '${{ github.workspace }}/cmake-build-release'
+          # Provides a mean to provide all the CMake arguments. This is required when using CMakeLists.txt in Advanced mode. For CMakeSettings.json, the arguments are already inferred, but you can append your arguments providing them here.  Used by CMakeListsTxtAdvanced and CMakeSettingsJson modes.
+          # cmakeAppendedArgs: # optional, default is ""
+          # Additional parameters for both CMake and the make program (e.g. ninja or make).  Separate CMake arguments to the native make program arguments with '--', such as: '--clean-first --config Debug -- -j0'. Used by both CMakeListsTxtBasic and CMakeListsTxtAdvanced modes
+          # buildWithCMakeArgs: # optional, default is ""
+
+      - name: Publish documentation
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: '${{ github.workspace }}/cmake-build-release/doc/html'
+          publish_branch: documentation
