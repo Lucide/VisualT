@@ -44,6 +44,7 @@ doxygen_add_docs(VisualT_doxygen_generate_xml
                  "${VisualT_SOURCE_DIR}/include/visualt/visualt.h")
 
 sphinx_add_docs(VisualT_sphinx_generate
+                ALL
                 SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
                 CONFIGURATION_DIR ${CMAKE_CURRENT_BINARY_DIR}
                 OUTPUT_BASE_DIR ${CMAKE_CURRENT_BINARY_DIR})
