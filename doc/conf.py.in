@@ -85,13 +85,13 @@ html_theme_options = {
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
 #
-html_logo = u"@CMAKE_CURRENT_SOURCE_DIR@/static/images/VCat-alpha.png"
+html_logo = u"@CMAKE_CURRENT_SOURCE_DIR@/images/VCat-alpha.png"
 
 # The name of an image file (relative to this directory) to use as a favicon of
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
 #
-html_favicon = u"@CMAKE_CURRENT_SOURCE_DIR@/static/images/favicon.ico"
+html_favicon = u"@CMAKE_CURRENT_SOURCE_DIR@/images/favicon.ico"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

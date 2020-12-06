@@ -4,8 +4,8 @@
  */
 
 #pragma once
-#ifndef VISUALT_INCLUDE_VISUALT_VISUALT_H_
-#define VISUALT_INCLUDE_VISUALT_VISUALT_H_
+#ifndef VISUALT_VISUALT_H
+#define VISUALT_VISUALT_H
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -461,7 +461,7 @@ VTChar vtPenGlyph(VTObj const *obj);
 /**
  * Gets @c{*obj}'s pen size.
  * @param obj a pointer to the Object you wan to process
- * @return The Object's pen size, a value between the [1,6] interval
+ * @return The Object's pen size, if outside the [1,6] interval, it will default to 1
  */
 unsigned short vtPenSize(VTObj const *obj);
 

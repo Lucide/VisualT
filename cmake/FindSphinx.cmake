@@ -60,59 +60,62 @@ mark_as_advanced(
         SPHINX_TEXT_OUTPUT
 )
 
-function(_sphinx_add_target target_name builder configuration_dir source_dir output_dir)
+function(_sphinx_add_target target_name builder)
+    if(ARG_ALL)
+        set(ARG_ALL ALL)
+    else()
+        set(ARG_ALL "")
+    endif()
     add_custom_target(${target_name}
+                      ${ARG_ALL}
                       COMMAND ${Sphinx_EXECUTABLE}
                       -b ${builder}
-                      -c ${configuration_dir}
-                      ${source_dir}
-                      ${output_dir}
+                      -c ${ARG_CONFIGURATION_DIR}
+                      ${ARG_SOURCE_DIR}
+                      "${ARG_OUTPUT_BASE_DIR}/${builder}"
                       VERBATIM
                       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                      COMMENT "Generating sphinx documentation: ${builder}"
-                      )
-    set_target_properties(${target_name}
-                          PROPERTIES
-                          ADDITIONAL_CLEAN_FILES ${output_dir})
+                      COMMENT "Generating sphinx documentation: ${builder}")
     if(ARGN)
-        add_dependencies(${target_name} ${ARGN})
+        add_dependencies(${target_name} ${ARG_DEPENDENCIES})
     endif()
 endfunction()
 
-function(sphinx_add_docs target_base_name #[[CONFIGURATION_DIR]] #[[SOURCE_DIR]] #[[OUTPUT_BASE_DIR]] #[[DEPENDENCIES]])
+function(sphinx_add_docs target_base_name #[[ALL]] #[[CONFIGURATION_DIR]] #[[SOURCE_DIR]] #[[OUTPUT_BASE_DIR]] #[[DEPENDENCIES]])
+    set(options ALL)
     set(singleValues CONFIGURATION_DIR SOURCE_DIR OUTPUT_BASE_DIR)
     set(multiValues DEPENDENCIES)
     cmake_parse_arguments(PARSE_ARGV 1
                           "ARG"
-                          options
+                          "${options}"
                           "${singleValues}"
                           "${multiValues}")
     if(DEFINED ARG_KEYWORDS_MISSING_VALUES)
-        message(FATAL_ERROR "No value given for ${ARG_KEYWORDS_MISSING_VALUES}")
+        message(FATAL_ERROR "No value given for" ${ARG_KEYWORDS_MISSING_VALUES})
     endif()
 
     if(SPHINX_HTML_OUTPUT)
-        _sphinx_add_target("${target_base_name}_html" html ${ARG_CONFIGURATION_DIR} ${ARG_SOURCE_DIR} "${ARG_OUTPUT_BASE_DIR}/html" ${ARG_DEPENDENCIES})
+        _sphinx_add_target("${target_base_name}_html" html)
     endif()
     if(SPHINX_DIRHTML_OUTPUT)
-        _sphinx_add_target("${target_base_name}_dirhtml" dirhtml ${ARG_CONFIGURATION_DIR} ${ARG_SOURCE_DIR} "${ARG_OUTPUT_BASE_DIR}/dirhtml" ${ARG_DEPENDENCIES})
+        _sphinx_add_target("${target_base_name}_dirhtml" dirhtml)
     endif()
     if(SPHINX_QTHELP_OUTPUT)
-        _sphinx_add_target("${target_base_name}_qthelp" qthelp ${ARG_CONFIGURATION_DIR} ${ARG_SOURCE_DIR} "${ARG_OUTPUT_BASE_DIR}/qthelp" ${ARG_DEPENDENCIES})
+        _sphinx_add_target("${target_base_name}_qthelp" qthelp)
     endif()
     if(SPHINX_DEVHELP_OUTPUT)
-        _sphinx_add_target("${target_base_name}_devhelp" devhelp ${ARG_CONFIGURATION_DIR} ${ARG_SOURCE_DIR} "${ARG_OUTPUT_BASE_DIR}/devhelp" ${ARG_DEPENDENCIES})
+        _sphinx_add_target("${target_base_name}_devhelp" devhelp)
     endif()
     if(SPHINX_EPUB_OUTPUT)
-        _sphinx_add_target("${target_base_name}_epub" epub ${ARG_CONFIGURATION_DIR} ${ARG_SOURCE_DIR} "${ARG_OUTPUT_BASE_DIR}/epub" ${ARG_DEPENDENCIES})
+        _sphinx_add_target("${target_base_name}_epub" epub)
     endif()
     if(SPHINX_LATEX_OUTPUT)
-        _sphinx_add_target("${target_base_name}_latex" latex ${ARG_CONFIGURATION_DIR} ${ARG_SOURCE_DIR} "${ARG_OUTPUT_BASE_DIR}/latex" ${ARG_DEPENDENCIES})
+        _sphinx_add_target("${target_base_name}_latex" latex)
     endif()
     if(SPHINX_MAN_OUTPUT)
-        _sphinx_add_target("${target_base_name}_man" man ${ARG_CONFIGURATION_DIR} ${ARG_SOURCE_DIR} "${ARG_OUTPUT_BASE_DIR}/man" ${ARG_DEPENDENCIES})
+        _sphinx_add_target("${target_base_name}_man" man)
     endif()
     if(SPHINX_TEXT_OUTPUT)
-        _sphinx_add_target("${target_base_name}_text" text ${ARG_CONFIGURATION_DIR} ${ARG_SOURCE_DIR} "${ARG_OUTPUT_BASE_DIR}/text" ${ARG_DEPENDENCIES})
+        _sphinx_add_target("${target_base_name}_text" text)
     endif()
 endfunction()

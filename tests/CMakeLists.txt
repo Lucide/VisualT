@@ -1,4 +1,4 @@
-add_executable(tests tests.c)
-target_link_libraries(tests
-        PRIVATE
-        VisualT_library)
+include(utils)
+
+add_executable(VisualT_tests tests.c)
+utils_intlink_library(VisualT_tests)

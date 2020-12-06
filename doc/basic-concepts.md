@@ -19,7 +19,7 @@ The attributes of an Object are:
 * its **x** and **y** position
 * its pen size
 
-``` image:: static/images/object.png
+``` image:: images/object.png
     :align: center
     :alt: Object structure
 ```
@@ -35,7 +35,7 @@ The *pen size* regulates the pen behavior. More on [The Pen](#the-pen).
 
 Sprites are the text equivalent of a bitmap image, instead of pixels, you have *cells*, where every cell contains a glyph. An Object's active Sprite determines its appearance and size. Sprites are always drawn centered with respect to the Object's position.
 
-``` image:: static/images/sprite.png
+``` image:: images/sprite.png
     :align: center
     :alt: Sprite structure
 ```
@@ -68,7 +68,7 @@ Objects come equipped with a toggleable *pen* that leaves a mark on the canvas w
 
 You can choose between six stroke sizes:
 
-``` figure:: static/images/pen-smaller.png
+``` figure:: images/pen-smaller.png
     :align: center
     :alt: pen strokes
 
@@ -77,7 +77,7 @@ You can choose between six stroke sizes:
 
 You can use the pen to plot functions, or parametric wireframe stuff. It works even when the drawing Object is hidden.
 
-``` figure:: static/images/pen-demo.gif
+``` figure:: images/pen-demo.gif
     :align: center
     :alt: pen demo
 

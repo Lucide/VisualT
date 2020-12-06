@@ -49,8 +49,6 @@ sphinx_add_docs(VisualT_sphinx_generate
                 OUTPUT_BASE_DIR ${CMAKE_CURRENT_BINARY_DIR})
 add_dependencies(VisualT_sphinx_generate_html VisualT_doxygen_generate_xml)
 
-add_custom_target(VisualT_documentation ALL)
-add_dependencies(VisualT_documentation VisualT_sphinx_generate_html)
 #=============================
 # Packaging
 #=============================

@@ -8,14 +8,14 @@
 #include <assert.h>
 
 typedef struct VTGlyphMap {
-	VTChar *chars;
+	VTChar *restrict chars;
 	int width, height;
 } GlyphMap;
 
 typedef VTObj Obj;
 
 typedef struct BoolMap {
-	bool *chars;
+	bool *restrict chars;
 	int width, height;
 } BoolMap;
 
@@ -377,15 +377,15 @@ static void line(GlyphMap const *const canvas, unsigned short const penSize, VTC
 			memcpy(stroke.chars, (VTChar[8*4]){0, penChar, penChar, penChar, penChar, penChar, penChar, 0, penChar, penChar, penChar, penChar, penChar, penChar, penChar, penChar, penChar, penChar, penChar, penChar, penChar, penChar, penChar, penChar, 0, penChar, penChar, penChar, penChar, penChar, penChar, 0}, sizeofGlyphs(&stroke));
 			break;
 	}
-	int dx = abs(x1-x0), dy = abs(y1-y0);
-	int t, err = (dx > dy ? dx : -dy)/2;
+	int const dx = abs(x1-x0), dy = abs(y1-y0);
+	int err = (dx > dy ? dx : -dy)/2;
 	short const stepX = x0 < x1 ? 1 : -1, stepY = y0 < y1 ? 1 : -1;
 	while(1) {
 		stamp(canvas, &stroke, x0, y0, false);
 		if(x0 == x1 && y0 == y1) {
 			break;
 		}
-		t = err;
+		int t = err;
 		if(t > -dx) {
 			err -= dy;
 			x0 += stepX;
@@ -437,7 +437,9 @@ uint32_t vtChar(VTStr ltChar) {
 
 //----INITIALIZATION----
 void vtInitializeBlank(Obj *const obj, unsigned int const sizesLength, VTSizes const sizes) {
+	assert(obj);
 	assert(sizesLength > 0);
+	assert(sizes);
 
 	obj->length = sizesLength;
 	obj->sprites = malloc(sizesLength*sizeof(GlyphMap));
@@ -451,6 +453,9 @@ void vtInitializeBlank(Obj *const obj, unsigned int const sizesLength, VTSizes c
 }
 
 void vtInitializeArray(Obj *const obj, VTChar const *const v) {
+	assert(obj);
+	assert(v);
+
 	obj->length = v[0];
 	obj->sprites = malloc(obj->length*sizeof(GlyphMap));
 	for(unsigned int i = 0, j = 1; i < obj->length; i++) {
@@ -467,29 +472,30 @@ void vtInitializeArray(Obj *const obj, VTChar const *const v) {
 }
 
 void vtInitializeFile(Obj *const obj, FILE *const file) {
+	assert(obj);
+	assert(file);
 	int vLength = 0;
-	VTChar *v;
 
-	if(file) {
-		while(fscanf(file, "%*" SCNu32) != EOF) { // NOLINT(cert-err34-c)
-			vLength++;
-		}
-		v = malloc((size_t)vLength*sizeof(VTChar));
-		rewind(file);
-		for(int i = 0; i < vLength; i++) {
-			if(!fscanf(file, "%" SCNu32, &v[i])) { // NOLINT(cert-err34-c)
-				perror("serialized Object file parsing failed");
-				return;
-			}
-		}
-		fclose(file);
-		vtInitializeArray(obj, v);
-		free(v);
+	while(fscanf(file, "%*" SCNu32) != EOF) { // NOLINT(cert-err34-c)
+		vLength++;
 	}
+	VTChar *const v = malloc((size_t)vLength*sizeof(VTChar));
+	rewind(file);
+	for(int i = 0; i < vLength; i++) {
+		if(!fscanf(file, "%" SCNu32, &v[i])) { // NOLINT(cert-err34-c)
+			perror("serialized Object file parsing failed");
+			return;
+		}
+	}
+	fclose(file);
+	vtInitializeArray(obj, v);
+	free(v);
 }
 
 void vtInitializeString(Obj *const obj, unsigned int utf8StringsLength, VTStrs const utf8Strings) {
+	assert(obj);
 	assert(utf8StringsLength > 0);
+	assert(utf8Strings);
 
 	obj->length = utf8StringsLength;
 	obj->sprites = malloc(utf8StringsLength*sizeof(GlyphMap));
@@ -499,13 +505,15 @@ void vtInitializeString(Obj *const obj, unsigned int utf8StringsLength, VTStrs c
 	initializeObj(obj);
 }
 
-void vtInitializeObj(Obj *const obj, Obj const *const src) {
-	GlyphMap *sprite;
+void vtInitializeObj(Obj *restrict const obj, Obj const *restrict const src) {
+	assert(obj);
+	assert(src);
+	assert(obj != src);
 
 	*obj = *src;
 	obj->sprites = malloc(obj->length*sizeof(GlyphMap));
 	for(unsigned int i = 0; i < obj->length; i++) {
-		sprite = &obj->sprites[i];
+		GlyphMap *const sprite = &obj->sprites[i];
 		initializeMap(Glyphs, sprite, src->sprites[i].width, src->sprites[i].height);
 		memcpy(sprite->chars, src->sprites[i].chars, sizeofGlyphs(sprite));
 	}
@@ -513,6 +521,9 @@ void vtInitializeObj(Obj *const obj, Obj const *const src) {
 }
 
 void vtRelease(unsigned int const objsLength, VTObjs const objs) {
+	assert(objsLength > 0);
+	assert(objs);
+
 	for(unsigned int i = 0; i < objsLength; i++) {
 		for(unsigned int j = 0; j < objs[i]->length; j++) {
 			freeMap(&objs[i]->sprites[j]);
@@ -522,8 +533,10 @@ void vtRelease(unsigned int const objsLength, VTObjs const objs) {
 }
 
 void vtCloneSprite(Obj const *const dest, unsigned int const spriteDest, Obj const *const src, unsigned int const spriteSrc) {
-	assert(spriteSrc < src->length);
+	assert(dest);
 	assert(spriteDest < dest->length);
+	assert(src);
+	assert(spriteSrc < src->length);
 	assert(&dest->sprites[spriteDest] != &src->sprites[spriteSrc]);
 
 	freeMap(&dest->sprites[spriteDest]);
@@ -533,6 +546,7 @@ void vtCloneSprite(Obj const *const dest, unsigned int const spriteDest, Obj con
 }
 
 void vtResize(Obj *const obj, unsigned int const width, unsigned int const height) {
+	assert(obj);
 	assert(width > 0);
 	assert(height > 0);
 
@@ -543,78 +557,115 @@ void vtResize(Obj *const obj, unsigned int const width, unsigned int const heigh
 
 //----REFRESH----
 void vtRender(Obj const *const canvas, unsigned int const objsLength, VTObjs const objs) {
+	assert(canvas);
+	assert(objsLength > 0);
+	assert(objs);
+
 	render(canvas->activeSprite, objsLength, objs, true);
 }
 
 void vtStamp(Obj const *const canvas, unsigned int const objsLength, VTObjs const objs) {
+	assert(canvas);
+	assert(objsLength > 0);
+	assert(objs);
+
 	render(canvas->activeSprite, objsLength, objs, false);
 }
 
 void vtPrint(Obj const *const canvas, bool const border) {
+	assert(canvas);
+
 	printGlyphMap(canvas->activeSprite, border);
 }
 
 size_t vtPrintToString(Obj const *const canvas, bool const border, uint8_t **const utf8Buffer) {
+	assert(canvas);
+	assert(utf8Buffer);
+
 	return stringifyGlyphMap(canvas->activeSprite, border, utf8Buffer);
 }
 
 size_t vtPrintStringSize(VTObj const *canvas, bool border) {
+	assert(canvas);
+
 	return stringifyGlyphMapSize(canvas->activeSprite, border);
 }
 
 //----SPRITE----
 unsigned int vtSprites(Obj const *const obj) {
+	assert(obj);
+
 	return obj->length;
 }
 
 unsigned int vtSpriteInd(Obj const *const obj) {
+	assert(obj);
+
 	return (unsigned int)(obj->activeSprite-obj->sprites);
 }
 
 void vtNextSprite(Obj *const obj) {
+	assert(obj);
+
 	obj->activeSprite = &(obj->sprites[(obj->activeSprite-obj->sprites+1)%obj->length]);
 }
 
 void vtPrecSprite(Obj *const obj) {
+	assert(obj);
+
 	obj->activeSprite = &(obj->sprites[(obj->activeSprite-obj->sprites+obj->length-1)%obj->length]);
 }
 
 void vtSetSprite(VTObj *obj, unsigned int const index) {
+	assert(obj);
 	assert(index < obj->length);
 
 	obj->activeSprite = &obj->sprites[index];
 }
 
 int vtWidth(Obj const *const obj) {
+	assert(obj);
+
 	return obj->activeSprite->width;
 }
 
 int vtHeight(Obj const *const obj) {
+	assert(obj);
+
 	return obj->activeSprite->height;
 }
 
 void vtSetText(Obj *const obj, VTStr const utf8String) {
+	assert(obj);
+	assert(utf8String);
+
 	freeMap(obj->activeSprite);
 	initializeGlyphMapString(obj->activeSprite, utf8String);
 }
 
 void vtClear(Obj const *const canvas) {
+	assert(canvas);
+
 	clearMap(Glyphs, canvas->activeSprite);
 }
 
 void vtFill(Obj const *canvas, VTChar const fillChar) {
-	for(int i = canvas->activeSprite->width*canvas->activeSprite->height; i-- > 0;) {
+	assert(canvas);
+
+	for(int i = canvas->activeSprite->width*canvas->activeSprite->height; --i >= 0;) {
 		canvas->activeSprite->chars[i] = fillChar;
 	}
 }
 
 void vtOverlay(Obj const *const dest, unsigned int const spriteDest, Obj const *const src, unsigned int const spriteSrc) {
-	assert(spriteSrc < src->length);
+	assert(dest);
 	assert(spriteDest < dest->length);
+	assert(src);
+	assert(spriteSrc < src->length);
 	assert(src->sprites[spriteSrc].width == dest->sprites[spriteDest].width);
 	assert(src->sprites[spriteSrc].height == dest->sprites[spriteDest].height);
 
-	for(int i = src->sprites[spriteSrc].width*src->sprites[spriteSrc].height; i-- > 0;) {
+	for(int i = src->sprites[spriteSrc].width*src->sprites[spriteSrc].height; --i >= 0;) {
 		if(src->sprites[spriteSrc].chars[i]) {
 			dest->sprites[spriteDest].chars[i] = src->sprites[spriteSrc].chars[i];
 		}
@@ -622,6 +673,7 @@ void vtOverlay(Obj const *const dest, unsigned int const spriteDest, Obj const *
 }
 
 void vtPrintAxes(Obj const *const canvas) {
+	assert(canvas);
 	VTChar *const chars = canvas->activeSprite->chars;
 	int const width = canvas->activeSprite->width, height = canvas->activeSprite->height;
 	int const centerX = width/2, centerY = height/2;
@@ -662,22 +714,28 @@ void vtPrintAxes(Obj const *const canvas) {
 
 //----OBJ----
 bool vtVisible(Obj const *const obj) {
+	assert(obj);
 	return obj->visible;
 }
 
 void vtShow(Obj *const obj) {
+	assert(obj);
 	obj->visible = true;
 }
 
 void vtHide(Obj *const obj) {
+	assert(obj);
 	obj->visible = false;
 }
 
 void vtSetVisibility(Obj *const obj, bool const visible) {
+	assert(obj);
 	obj->visible = visible;
 }
 
 void vtSerialize(Obj const *const obj, VTChar *const v) {
+	assert(obj);
+
 	if(v) {
 		v[0] = (uint32_t)obj->length;
 		for(unsigned int i = 0, j = 1; i < obj->length; i++) {
@@ -705,7 +763,9 @@ void vtSerialize(Obj const *const obj, VTChar *const v) {
 }
 
 size_t vtSerializedArraySize(Obj const *const obj) {
+	assert(obj);
 	int length = 1; //sprites length
+
 	for(unsigned int i = 0; i < obj->length; i++) {
 		length += 2 //sprite dimensions
 				+obj->sprites[i].width*obj->sprites[i].height;
@@ -715,31 +775,39 @@ size_t vtSerializedArraySize(Obj const *const obj) {
 
 //----PEN----
 VTChar vtPenGlyph(VTObj const *obj) {
+	assert(obj);
 	return obj->penChar;
 }
 
 unsigned short vtPenSize(Obj const *const obj) {
+	assert(obj);
 	return obj->penSize;
 }
 
 void vtSetPenSize(Obj *const obj, unsigned short const size) {
+	assert(obj);
 	obj->penSize = (size >= 1 && size <= 6) ? size : (unsigned short)1;
 }
 
 void vtSetPenGlyph(VTObj *obj, VTChar penChar) {
+	assert(obj);
 	obj->penChar = penChar;
 }
 
 //----MOVE----
 int vtXPosition(Obj const *const obj) {
+	assert(obj);
 	return obj->x;
 }
 
 int vtYPosition(Obj const *const obj) {
+	assert(obj);
 	return obj->y;
 }
 
 void vtGotoXY(Obj const *const canvas, Obj *const obj, int const x, int const y) {
+	assert(obj);
+
 	if(canvas) {
 		line(canvas->activeSprite, obj->penSize, obj->penChar, obj->x, obj->y, x, y);
 	}
@@ -748,6 +816,8 @@ void vtGotoXY(Obj const *const canvas, Obj *const obj, int const x, int const y)
 }
 
 void vtGotoX(Obj const *const canvas, Obj *const obj, int const x) {
+	assert(obj);
+
 	if(canvas) {
 		line(canvas->activeSprite, obj->penSize, obj->penChar, obj->x, obj->y, x, obj->y);
 	}
@@ -755,6 +825,8 @@ void vtGotoX(Obj const *const canvas, Obj *const obj, int const x) {
 }
 
 void vtGotoY(Obj const *const canvas, Obj *const obj, int const y) {
+	assert(obj);
+
 	if(canvas) {
 		line(canvas->activeSprite, obj->penSize, obj->penChar, obj->x, obj->y, obj->x, y);
 	}
@@ -762,6 +834,8 @@ void vtGotoY(Obj const *const canvas, Obj *const obj, int const y) {
 }
 
 void vtChangeX(Obj const *const canvas, Obj *const obj, int const x) {
+	assert(obj);
+
 	if(canvas) {
 		line(canvas->activeSprite, obj->penSize, obj->penChar, obj->x, obj->y, obj->x+x, obj->y);
 	}
@@ -769,6 +843,8 @@ void vtChangeX(Obj const *const canvas, Obj *const obj, int const x) {
 }
 
 void vtChangeY(Obj const *const canvas, Obj *const obj, int const y) {
+	assert(obj);
+
 	if(canvas) {
 		line(canvas->activeSprite, obj->penSize, obj->penChar, obj->x, obj->y, obj->x, obj->y-y);
 	}
@@ -776,6 +852,7 @@ void vtChangeY(Obj const *const canvas, Obj *const obj, int const y) {
 }
 
 void vtAlign(Obj *const obj, VTAlign const position) {
+	assert(obj);
 	int const centerX = obj->activeSprite->width/2, centerY = obj->activeSprite->height/2;
 	switch(position) {
 		default:
@@ -800,8 +877,10 @@ void vtAlign(Obj *const obj, VTAlign const position) {
 }
 
 bool vtIsTouching(Obj const *const canvas, Obj const *const obj, unsigned int objsLength, VTObjs const objs) {
-	GlyphMap const *const sprite = obj->activeSprite;
-	int spriteX, spriteY;
+	assert(canvas);
+	assert(obj);
+	assert(objsLength > 0);
+	assert(objs);
 
 	if(obj->visible) {
 		BoolMap boolMap;
@@ -812,6 +891,8 @@ bool vtIsTouching(Obj const *const canvas, Obj const *const obj, unsigned int ob
 				mask(&boolMap, objs[i]->activeSprite, objs[i]->x, objs[i]->y);
 			}
 		}
+		GlyphMap const *const sprite = obj->activeSprite;
+		int spriteX, spriteY;
 		normalizePosition(&boolMap, sprite, obj->x, obj->y, spriteX, spriteY);
 		for(int y = 0; y < sprite->height; y++) {
 			for(int x = 0; x < sprite->width; x++) {
@@ -830,10 +911,12 @@ bool vtIsTouching(Obj const *const canvas, Obj const *const obj, unsigned int ob
 }
 
 bool vtIsTouchingGlyph(VTObj const *canvas, VTObj const *obj, VTChar testChar) {
-	GlyphMap const *const glyphMap = canvas->activeSprite, *const sprite = obj->activeSprite;
-	int spriteX, spriteY;
+	assert(canvas);
+	assert(obj);
 
 	if(obj->visible) {
+		GlyphMap const *const glyphMap = canvas->activeSprite, *const sprite = obj->activeSprite;
+		int spriteX, spriteY;
 		normalizePosition(glyphMap, sprite, obj->x, obj->y, spriteX, spriteY);
 		for(int y = 0; y < sprite->height; y++) {
 			for(int x = 0; x < sprite->width; x++) {
@@ -847,10 +930,12 @@ bool vtIsTouchingGlyph(VTObj const *canvas, VTObj const *obj, VTChar testChar) {
 }
 
 bool vtIsOutside(Obj const *const canvas, Obj const *const obj) {
-	GlyphMap const *const glyphMap = canvas->activeSprite, *const sprite = obj->activeSprite;
-	int spriteX, spriteY;
+	assert(canvas);
+	assert(obj);
 
 	if(obj->visible) {
+		GlyphMap const *const glyphMap = canvas->activeSprite, *const sprite = obj->activeSprite;
+		int spriteX, spriteY;
 		normalizePosition(glyphMap, sprite, obj->x, obj->y, spriteX, spriteY);
 		for(int y = 0; y < sprite->height; y++) {
 			for(int x = 0; x < sprite->width; x++) {

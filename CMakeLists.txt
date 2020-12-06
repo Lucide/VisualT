@@ -18,8 +18,8 @@ if(NOT isMultiConfig)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY
                  HELPSTRING "Supported build types are: Debug, Release (default), RelWithDebInfo, and MinSizeRel")
     if(NOT CMAKE_BUILD_TYPE)
-        set(CMAKE_BUILD_TYPE Release
-            CACHE STRING "Build type defaults to Release" FORCE)
+        set(CMAKE_BUILD_TYPE Release)
+        message(STATUS "CMAKE_BUILD_TYPE is undefined. VisualT will default to ${CMAKE_BUILD_TYPE}")
     elseif(NOT CMAKE_BUILD_TYPE IN_LIST allowedBuildTypes)
         message(FATAL_ERROR "Unknown build type: ${CMAKE_BUILD_TYPE}")
     endif()
