@@ -1,14 +1,20 @@
+#=============================
 # Preamble
+#=============================
 cmake_minimum_required(VERSION 3.17)
-
 project(VisualT
-        VERSION 3.2.0
+        VERSION 2.0.0
         DESCRIPTION "a text-based graphic library"
-        HOMEPAGE_URL "https://github.com/Lucide/VisualT"
+        HOMEPAGE_URL "https://lucide.github.io/VisualT"
         LANGUAGES C)
-enable_testing()
 
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+#enable_testing()
+
+#=============================
 # Project wide setup
+#=============================
 get_property(isMultiConfig GLOBAL
              PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(NOT isMultiConfig)
@@ -24,34 +30,37 @@ if(NOT isMultiConfig)
         message(FATAL_ERROR "Unknown build type: ${CMAKE_BUILD_TYPE}")
     endif()
 endif()
-list(APPEND CMAKE_MODULE_PATH "${VisualT_SOURCE_DIR}/cmake")
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED YES)
 set(CMAKE_C_EXTENSIONS NO)
-
-# Externally provided content
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 add_subdirectory(dependencies)
-
-# Main targets built by this project
 add_subdirectory(src)
 add_subdirectory(tests)
 add_subdirectory(examples)
 add_subdirectory(doc)
 
-# Things typically only needed if we are the top level project
+#=============================
+# Top level project only
+#=============================
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    set(CMAKE_INSTALL_DOCDIR ${CMAKE_INSTALL_DATAROOTDIR}/doc/${PROJECT_NAME})
+    message("installation directories:\n"
+            "prefix \"${CMAKE_INSTALL_PREFIX}\"\n"
+            "BINDIR \"${CMAKE_INSTALL_BINDIR}\"\n"
+            "LIBDIR \"${CMAKE_INSTALL_LIBDIR}\"\n"
+            "INCLUDEDIR \"${CMAKE_INSTALL_INCLUDEDIR}\"\n"
+            "DATAROOTDIR \"${CMAKE_INSTALL_DATAROOTDIR}\"\n"
+            "DATADIR \"${CMAKE_INSTALL_DATADIR}\"\n"
+            "DOCDIR \"${CMAKE_INSTALL_DOCDIR}\"\n")
+endif()
 
-include(GNUInstallDirs)
-message(
-        "installation directories:\n"
-        "prefix \"${CMAKE_INSTALL_PREFIX}\"\n"
-        "ARCHIVE \"${CMAKE_INSTALL_LIBDIR}\"\n"
-        "LIBRARY \"${CMAKE_INSTALL_LIBDIR}\"\n"
-        "RUNTIME \"${CMAKE_INSTALL_BINDIR}\"\n"
-        "PUBLIC_HEADER \"${CMAKE_INSTALL_INCLUDEDIR}\"\n"
-        "PRIVATE_HEADER \"${CMAKE_INSTALL_INCLUDEDIR}\"\n"
-)
-
-#set(version_in_path "${VisualT_SOURCE_DIR}/src/version.h.in")
-#set(version_configured_path "${VisualT_BINARY_DIR}/src/version.h")
-#set(doxyfile_in_path "${VisualT_SOURCE_DIR}/doxyfile.in")
-#set(doxyfile_configured_path "${VisualT_BINARY_DIR}/doxyfile")
+#=============================
+# Installation
+#=============================
+write_basic_package_version_file("${PROJECT_BINARY_DIR}/VisualTVersion.cmake"
+                                 COMPATIBILITY SameMinorVersion)
+install(FILES
+        VisualTConfig.cmake
+        "${PROJECT_BINARY_DIR}/VisualTVersion.cmake"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")

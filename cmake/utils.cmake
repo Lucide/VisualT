@@ -2,6 +2,19 @@ macro(utils_relativify_path path)
     string(REGEX REPLACE [[^\.]] ${PROJECT_SOURCE_DIR} ${path} "${${path}}")
 endmacro()
 
+function(utils_rebase_paths output_name base_dir #[[FILES]])
+    set(multiValues FILES)
+    cmake_parse_arguments(PARSE_ARGV 2
+                          "ARG"
+                          ""
+                          ""
+                          "${multiValues}")
+    foreach(file IN LISTS ARG_FILES)
+        list(APPEND ${output_name} "${base_dir}/${file}")
+    endforeach()
+    set(${output_name} ${${output_name}} PARENT_SCOPE)
+endfunction()
+
 function(utils_intlink_library target)
     target_link_libraries(${target}
                           PRIVATE VisualT_library)

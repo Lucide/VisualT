@@ -11,10 +11,10 @@ from recommonmark.transform import AutoStructify
 
 # -- Project information -----------------------------------------------------
 
-project = "VisualT"
-copyright = u"2020-@VisualT_BUILD_YEAR@, Riccardo Cavasin"
+project = "@PROJECT_NAME@"
+copyright = u"2020-@build_year@, Riccardo Cavasin"
 author = "Lucide"
-version = u"@VisualT_VERSION@"
+version = u"@PROJECT_VERSION@"
 release = version
 
 # -- General configuration ---------------------------------------------------

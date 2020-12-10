@@ -1,17 +1,18 @@
 include(utils)
 
+#=============================
+# Dependencies
+#=============================
 find_package(Doxygen REQUIRED)
 set(VisualT_PYTHON_VENV "" CACHE PATH "If the python dependencies are installed in a virtual environment, set the path here.")
 utils_relativify_path(VisualT_PYTHON_VENV)
 list(APPEND CMAKE_PREFIX_PATH ${VisualT_PYTHON_VENV})
 find_package(Sphinx REQUIRED)
 list(POP_BACK CMAKE_PREFIX_PATH)
-string(TIMESTAMP VisualT_BUILD_YEAR "%Y")
-configure_file(
-        conf.py.in
-        "${CMAKE_CURRENT_BINARY_DIR}/conf.py"
-        @ONLY)
 
+#=============================
+# Doxyfile configuration
+#=============================
 set(DOXYGEN_WARN_IF_UNDOCUMENTED NO)
 set(DOXYGEN_OPTIMIZE_OUTPUT_FOR_C YES)
 set(DOXYGEN_MARKDOWN_SUPPORT NO)
@@ -38,18 +39,30 @@ list(APPEND DOXYGEN_ALIASES
      [["c{1}=<tt>\1</tt>"]])                        #code
 
 #=============================
-# Define targets
+# Targets
 #=============================
 doxygen_add_docs(VisualT_doxygen_generate_xml
-                 "${VisualT_SOURCE_DIR}/include/visualt/visualt.h")
+                 "${PROJECT_SOURCE_DIR}/include/visualt/visualt.h")
 
 sphinx_add_docs(VisualT_sphinx_generate
-                ALL
                 SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
                 CONFIGURATION_DIR ${CMAKE_CURRENT_BINARY_DIR}
                 OUTPUT_BASE_DIR ${CMAKE_CURRENT_BINARY_DIR})
 add_dependencies(VisualT_sphinx_generate_html VisualT_doxygen_generate_xml)
 
 #=============================
-# Packaging
+# Configure Time Generation
 #=============================
+string(TIMESTAMP build_year "%Y")
+configure_file(
+        conf.py.in
+        "${CMAKE_CURRENT_BINARY_DIR}/conf.py"
+        @ONLY)
+
+#=============================
+# Installation
+#=============================
+install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html/"
+        TYPE DOC
+        COMPONENT VisualT_documentation
+        EXCLUDE_FROM_ALL)
