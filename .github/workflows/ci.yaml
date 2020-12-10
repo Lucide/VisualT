@@ -45,7 +45,7 @@ jobs:
           # Provides a mean to provide all the CMake arguments. This is required when using CMakeLists.txt in Advanced mode. For CMakeSettings.json, the arguments are already inferred, but you can append your arguments providing them here.  Used by CMakeListsTxtAdvanced and CMakeSettingsJson modes.
           # cmakeAppendedArgs: # optional, default is ""
           # Additional parameters for both CMake and the make program (e.g. ninja or make).  Separate CMake arguments to the native make program arguments with '--', such as: '--clean-first --config Debug -- -j0'. Used by both CMakeListsTxtBasic and CMakeListsTxtAdvanced modes
-          buildWithCMakeArgs: --target ALL VisualT_sphinx_generate_html
+          buildWithCMakeArgs: --target VisualT_library VisualT_sphinx_generate_html
 
       - name: Publish documentation
         uses: peaceiris/actions-gh-pages@v3
