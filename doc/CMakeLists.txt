@@ -5,9 +5,9 @@ include(utils)
 #=============================
 find_package(Doxygen REQUIRED)
 set(VisualT_PYTHON_VENV "" CACHE PATH "If the python dependencies are installed in a virtual environment, set the path here.")
-utils_relativify_path(VisualT_PYTHON_VENV)
+relativify_path(VisualT_PYTHON_VENV)
 list(APPEND CMAKE_PREFIX_PATH ${VisualT_PYTHON_VENV})
-find_package(Sphinx REQUIRED)
+find_package(Sphinx MODULE REQUIRED)
 list(POP_BACK CMAKE_PREFIX_PATH)
 
 #=============================
@@ -66,3 +66,7 @@ install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html/"
         TYPE DOC
         COMPONENT VisualT_documentation
         EXCLUDE_FROM_ALL)
+install_symbolic(EXPORT VisualT_documentation
+                 COMPONENT VisualT_documentation
+                 DESTINATION ${VisualT_export_dir}
+                 EXCLUDE_FROM_ALL)

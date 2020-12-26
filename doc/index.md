@@ -11,4 +11,7 @@
     api-reference
 ```
 
-VisualT is a UTF8 compatible, cross-platform C library that makes creating text-based UIs easier and faster.
+VisualT is a cross-platform C library that makes creating UTF8 text-based UIs easier and faster.
+
+* CMake implementation in progress
+* Documentation in progress

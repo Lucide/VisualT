@@ -1,12 +1,14 @@
-add_executable(VisualT_pen_demo pen-demo.c)
+include(utils)
 
-set_target_properties(VisualT_pen_demo PROPERTIES
-                      OUTPUT_NAME pen-demo
-                      )
+add_executable(VTExamples_pen_demo pen-demo.c)
 
-#target_compile_definitions(VisualT_pen_demo
-#                           PRIVATE _USE_MATH_DEFINES)
+set_target_properties(VTExamples_pen_demo PROPERTIES
+                      OUTPUT_NAME pen-demo)
 
-target_link_libraries(VisualT_pen_demo
+link_and_copy(VTExamples_pen_demo)
+target_link_libraries(VTExamples_pen_demo
                       PRIVATE
-                      VisualT_library m)
+                      VTExamples_utilities
+                      "$<$<NOT:$<C_COMPILER_ID:MSVC>>:m>")
+
+

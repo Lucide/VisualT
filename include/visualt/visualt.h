@@ -55,14 +55,15 @@ typedef uint8_t const *VTStr;
 /**
  * A pointer to a read-only @type{VTStr}.
  *
- * This is what the API expects when passing an array of UTF8-encoded strings. Like in @func{vtInitializeString}.
+ * This is what the API expects when passing an array of UTF8-encoded strings. Like in @func{vtInitializeStrings}.
  */
 typedef VTStr const *VTStrs;
 
 /**
  * A pointer to a read-only pair of positive integers.
  *
- * This is what the API expects when passing an array containing multiple Sprite sizes. Like in @func{vtInitializeBlank}.
+ * This is what the API expects when passing an array containing multiple Sprite sizes. Like in
+ * @func{vtInitializeBlank}.
  */
 typedef int const (*VTSizes)[2];
 
@@ -74,6 +75,13 @@ typedef int const (*VTSizes)[2];
 typedef VTObj const *const *VTObjs;
 
 /**
+ * This enumerator is meant to be used with @func{vtOffset}.
+ */
+typedef enum VTDirection {
+	VT_LEFT, VT_RIGHT, VT_TOP, VT_BOTTOM
+} VTDirection;
+
+/**
  * This enumerator is meant to be used with @func{vtAlign}.
  */
 typedef enum VTAlign {
@@ -81,22 +89,22 @@ typedef enum VTAlign {
 } VTAlign;
 
 /**
- * A helper macro to cast a literal string to @type{VTStr}.
+ * A helper macro to cast a @b literal string to @type{VTStr}.
  *
  * @see @func{vtSetText}
  */
 #define LTSTR (VTStr)
 
 /**
- * A helper macro to cast a literal array of strings to @type{VTStrs}.
+ * A helper macro to cast a @b literal array of strings to @type{VTStrs}.
  *
  * The main use case is when you want to initialize an Object from one or more literal strings.
- * @see @func{vtInitializeString}
+ * @see @func{vtInitializeStrings}
  */
 #define LTSTRS (VTStrs)(char* [])
 
 /**
- * A helper macro to cast a literal array of integer pairs to @type{VTSizes}.
+ * A helper macro to cast a @b literal array of integer pairs to @type{VTSizes}.
  *
  * The main use case is when you want to initialize a blank Object given its sprites sizes.
  * @see @func{vtInitializeBlank}
@@ -104,7 +112,7 @@ typedef enum VTAlign {
 #define LTSIZES (VTSizes)(unsigned int [][2])
 
 /**
- * A helper macro to cast a literal array of pointers to Objects to @type{VTObjs}.
+ * A helper macro to cast a @b literal array of pointers to Objects to @type{VTObjs}.
  *
  * An example is when you want to render a group of Objects.
  * @see @func{vtRender}
@@ -118,13 +126,12 @@ typedef enum VTAlign {
  */
 void vtAbout();
 
-/**
- * A helper function to convert a @b{single-glyph} @type{VTStr} to a @type{VTChar}.
- * @see @func{vtFill}
- * @param ltChar a UTF8-encoded string containing a single glyph
- * @return The first character packed in a @type{VTChar}, so that VisualT can process it.
- */
-uint32_t vtChar(VTStr ltChar);
+ /**
+  * A helper function to convert a @b{single-glyph} literal string to a @type{VTChar}.
+  * @param ltChar a UTF8-encoded string containing a single glyph
+  * @return The first glyph encoded in a @type{VTChar}, so that VisualT can process it.
+  */
+VTChar vtChar(char const *ltChar);
 
 /**
  * Initializes  @c *obj to a blank Object with @c sizesLength Sprites of @c sizes size.
@@ -145,8 +152,9 @@ void vtInitializeBlank(VTObj *obj, unsigned int sizesLength, VTSizes sizes);
  *
  * VisualT has its own import and export format, consisting of a sequence of @type{VTChar} that can be
  * embedded in the source as a literal array, or @func{vtInitializeFile,read from a file}. Currently, the only way to
- * serialize an Object is via @func{vtSerialize}, but it's still a quite powerful tool: it lets you leverage the library to
- * programmatically compose complex scenes from simpler Objects, and then "bake" the result to a new, standalone Object.
+ * serialize an Object is via @func{vtSerialize}, but it's still a quite powerful tool: it lets you leverage the library
+ * to programmatically compose complex scenes from simpler Objects, and then "bake" the result to a new, standalone
+ * Object.
  *
  * Exporters for existing text-art editors may be created in the future.
  *
@@ -158,7 +166,9 @@ void vtInitializeArray(VTObj *obj, VTChar const *v);
 /**
  * Initializes @c *obj from the @e{native serialized Object file} pointed by @c file.
  *
- * A @e{serialized Object file} is a plain text file containing a @e{serialized Object array}'s values separated by a space.
+ * A @e{serialized Object file} is a plain text file containing a @e{serialized Object array}'s values separated by a
+ * space.
+ * The file is automatically closed.
  * @see @func{vtInitializeArray}
  * @param obj a pointer the Object to initialize
  * @param file a pointer to a serialized Object file
@@ -173,7 +183,7 @@ void vtInitializeFile(VTObj *obj, FILE *file);
  * empty cells will be transparent. Normal space characters will be interpreted literally (opaque), but you can use
  * @c \\v to indicate an empty cell.
  * @code
- * vtInitializeString(&obj, 3, LTSTRS{"sprite A","sprite\vB\nsecond\vrow"});
+ * vtInitializeStrings(&obj, 3, LTSTRS{"sprite A","sprite\vB\nsecond\vrow"});
  * @endcode
  * - @e{Sprite 1}: width:8 height:1, fully opaque
  * - @e{Sprite 2}: width:10 height:2, all empty cells are transparent
@@ -182,7 +192,7 @@ void vtInitializeFile(VTObj *obj, FILE *file);
  * @param utf8StringsLength the length of @c utf8Strings, equivalent to the number of Sprites
  * @param utf8Strings (@macro{LTSTRS}) an array of UTF8 strings, each string becomes a Sprite
  */
-void vtInitializeString(VTObj *obj, unsigned int utf8StringsLength, VTStrs utf8Strings);
+void vtInitializeStrings(VTObj *obj, unsigned int utf8StringsLength, VTStrs utf8Strings);
 
 /**
  * Initializes @c *obj as a clone of @c *src.
@@ -259,54 +269,54 @@ void vtRender(VTObj const *canvas, unsigned int objsLength, VTObjs objs);
 void vtStamp(VTObj const *canvas, unsigned int objsLength, VTObjs objs);
 
 /**
- * Prints the @c *canvas to stdout. If @c border is true, also prints a frame around the output.
+ * Prints @c *obj to stdout. If @c border is true, also prints a frame around the output.
  *
  * The printing is row-buffered: a buffer large enough to store an entire row (a little bit more than 4*width Bytes) is
  * allocated and deallocated by the function. The last character printed is always a @e{line feed} @c \\n.
  *
- * @param canvas a pointer to the Object you want to print, usually the canvas
+ * @param obj a pointer to the Object you want to print
  * @param border print the frame?
  */
-void vtPrint(VTObj const *canvas, bool border);
+void vtPrint(VTObj const *obj, bool border);
 
 /**
- * Prints the @c *canvas to @c *utf8Buffer, behaves the same as @func{vtPrint}. If @c{*utf8Buffer==NULL}, the buffer
+ * Prints @c *obj to @c *utf8Buffer, behaves the same as @func{vtPrint}. If @c{*utf8Buffer==NULL}, the buffer
  * will be allocated automatically. There will be no @e{line feed} @c \\n at the end.
  * - @e{Usage example 1}: the output buffer is allocated by the function:
  * @code
  * unsigned char *s = NULL; // remember to initialize the pointer to NULL!
- * size_t size = printToString(&canvas, true, &s); // size = strlen(s) + 1('\0')
+ * size_t size = printToString(&obj, true, &s); // size = strlen(s) + 1('\0')
  * puts(s);
  * free(s); // remember to free the buffer!
  * @endcode
  * - @e{Usage example 2}: the output buffer is allocated by the user:
  * @code
- * unsigned char *s = malloc(vtPrintStringSize(&canvas, true)); // remember to use the same border value
- * size_t size = printToString(&canvas, true, &s); // size = strlen(s) + 1('\0')
+ * unsigned char *s = malloc(vtPrintStringSize(&obj, true)); // remember to use the same border value
+ * size_t size = printToString(&obj, true, &s); // size = strlen(s) + 1('\0')
  * puts(s);
  * free(s); // remember to free the buffer!
  * @endcode
  * If the provided buffer isn't large enough, the function will cause memory corruption. Use @func{vtPrintStringSize} to
  * get the minimum required size.
 
- * @param canvas a pointer to the Object you want to print, usually the canvas
+ * @param obj a pointer to the Object you want to print
  * @param border print the frame?
  * @param utf8Buffer a pointer to a pointer to a @c char buffer. @c *utf8Buffer will be allocated (thus overwritten) if
  * @c NULL
  * @return The amount of bytes written by the function, must be ≥ to the size of @c *utf8Buffer.
  */
-size_t vtPrintToString(VTObj const *canvas, bool border, uint8_t **utf8Buffer);
+size_t vtPrintToString(VTObj const *obj, bool border, uint8_t **utf8Buffer);
 
 /**
- * Calculates the size of the buffer the @c *canvas would occupy if printed. With or without @c border.
+ * Calculates the size of the buffer @c *obj would occupy if printed. With or without @c border.
  *
  * This is useful if you want to allocate the buffer yourself when using @func{vtPrintToString}.
  *
- * @param canvas a pointer to the Object you want to process, usually the canvas
+ * @param obj a pointer to the Object you want to process
  * @param border add the frame to the calculation?
- * @return The size of the buffer the @c *canvas would occupy if printed.
+ * @return The size of the buffer @c *obj would occupy if printed.
  */
-size_t vtPrintStringSize(VTObj const *canvas, bool border);
+size_t vtPrintStringSize(VTObj const *obj, bool border);
 
 /**
  * Gets @c{*obj}'s amount of Sprites.
@@ -356,33 +366,70 @@ int vtWidth(VTObj const *obj);
 int vtHeight(VTObj const *obj);
 
 /**
- * Sets @c{*obj}'s active Sprite content to @c utf8String. The parsing is done the same as in @func{vtInitializeString}.
+ * Gets the maximum visible coordinate (extrema) of the given sprite
+ * @param obj a pointer to the Object
+ * @param direction specifies the desired direction
+ * @return The coordinate value.
+ */
+int vtExtremum(VTObj const *obj, VTDirection direction);
+
+/**
+ * Sets @c{*obj}'s active Sprite content to @c utf8String. If @c fitToContent is @c true, the sprite will be reallocated
+ * to fit @c utf8String. The parsing is done the same as in @func{vtInitializeStrings}.
  * @code
  * vtSetText(&obj, LTSTR "A\vKaomoji\n\v(o˘◡˘o)");
  * @endcode
  * @param obj a pointer to the Object
+ * @param fitToContent resize the sprite
  * @param utf8String (@macro{LTSTR}) an UTF8 string
  */
-void vtSetText(VTObj *obj, VTStr utf8String);
+void vtSetText(VTObj *obj, bool fitToContent, VTStr utf8String);
 
 /**
- * Clears @c{*canvas}'s active Sprite. Clearing a Sprite sets all its cell to 0 (transparent).
+ * Clears @c{*obj}'s active Sprite. Clearing a Sprite sets all its cell to 0 (transparent).
  *
- * Equivalent to @c{fill(&canvas, 0);}.
+ * Equivalent to @c{fill(&obj, 0);}.
  *
- * @param canvas a pointer to the Object you want to clear, usually the canvas
+ * @param obj a pointer to the Object you want to clear
  */
-void vtClear(VTObj const *canvas);
+void vtClear(VTObj const *obj);
 
 /**
- * Sets every cell of @c{*canvas}'s active Sprite to the glyph in @c fillChar.
+ * Sets every cell of @c{*obj}'s active Sprite to the glyph in @c fillChar.
  * @code
- * vtFill(&canvas, vtChar(LTSTR "▀"));
+ * vtFill(&obj, vtChar(LTSTR "▀"));
  * @endcode
- * @param canvas a pointer to the Object you want to fill, usually the canvas
- * @param fillChar (@func{vtChar}) the character you want to fill the canvas with
+ * @param obj a pointer to the Object you want to fill
+ * @param fillChar (@func{vtChar}) the character you want to fill the obj with
  */
-void vtFill(VTObj const *canvas, VTChar fillChar);
+void vtFill(VTObj const *obj, VTChar fillChar);
+
+/**
+ * Replaces every cell of @c{*obj}'s active Sprite containing @c oldChar with the glyph in @c newChar.
+ * @param obj a pointer to the Object
+ * @param oldChar (@func{vtChar}) the character you want to replace
+ * @param newChar (@func{vtChar}) the replacing character
+ */
+void vtReplace(VTObj const *obj, VTChar oldChar, VTChar newChar);
+
+/**
+ * Shifts every cell of @c{*obj}'s active Sprite of @c amount in the specified @c direction.
+ *
+ * Trailing cells will be empty.
+ *
+ * @param obj a pointer to the Object
+ * @param direction in which direction to perform the shift
+ * @param amount the shift amount. Negative values are supported
+ */
+void vtShift(VTObj const *obj, VTDirection direction, int amount);
+
+/**
+ * Rotates each row/column of @c{*obj}'s active Sprite of @c amount in the specified @c direction.
+ * @param obj a pointer to the Object
+ * @param direction in which direction to perform the row/column rotation
+ * @param amount the rotation amount. Negative values are supported
+ */
+void vtRotate(VTObj const *obj, VTDirection direction, int amount);
 
 /**
  * Draws the content of @c{*src}'s Sprite n°@c spriteSrc onto @c{*dest}'s Sprite n°@c spriteDest of the same size.
@@ -399,10 +446,10 @@ void vtFill(VTObj const *canvas, VTChar fillChar);
 void vtOverlay(VTObj const *dest, unsigned int spriteDest, VTObj const *src, unsigned int spriteSrc);
 
 /**
- * Draws a visual representation of the coordinate system on the @c{*canvas}.
- * @param canvas a pointer to the affected Object, usually the canvas
+ * Draws a visual representation of the coordinate system on the @c{*obj}.
+ * @param obj a pointer to the affected Object
  */
-void vtPrintAxes(VTObj const *canvas);
+void vtDrawAxes(VTObj const *obj);
 
 /**
  * Gets @c{*obj}'s visibility flag.

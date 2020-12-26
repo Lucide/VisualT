@@ -2,17 +2,20 @@ include(FindPackageHandleStandardArgs)
 
 find_package(Python3 REQUIRED Interpreter)
 get_filename_component(_python3_dir ${Python3_EXECUTABLE} DIRECTORY)
-execute_process(
-        COMMAND ${Python3_EXECUTABLE} -m site --user-base
-        OUTPUT_VARIABLE _pkg_install_dir
-        OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND ${Python3_EXECUTABLE} -m site --user-base
+                OUTPUT_VARIABLE _pkg_install_dir
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
+file(TO_CMAKE_PATH ${_pkg_install_dir} _pkg_install_dir)
 find_program(Sphinx_EXECUTABLE
              "sphinx-build"
              HINTS
              ${_pkg_install_dir}
+             "${_pkg_install_dir}/Python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}"
              ${_python3_dir}
              PATH_SUFFIXES
-             "Scripts"
+             Scripts
+             NO_CMAKE_ENVIRONMENT_PATH
+             NO_CMAKE_SYSTEM_PATH
              DOC "Sphinx documentation generator")
 if(Sphinx_EXECUTABLE)
     execute_process(
@@ -57,8 +60,7 @@ mark_as_advanced(
         SPHINX_EPUB_OUTPUT
         SPHINX_LATEX_OUTPUT
         SPHINX_MAN_OUTPUT
-        SPHINX_TEXT_OUTPUT
-)
+        SPHINX_TEXT_OUTPUT)
 
 function(_sphinx_add_target target_name builder)
     if(ARG_ALL)

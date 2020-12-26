@@ -24,14 +24,14 @@ They are called "initializers" (and not allocators) for a reason: the Object str
 
 ```c
 VTObj obj;
-vtInitializeString(&obj, 1, LTSTRS{"An Object in the stack"});
+vtInitializeStrings(&obj, 1, LTSTRS{"An Object in the stack"});
 ```
 
 or:
 
 ```c
 VTObj *obj = malloc(sizeof(VTObj));
-vtInitializeString(obj, 1, LTSTRS{"An Object in the heap"});
+vtInitializeStrings(obj, 1, LTSTRS{"An Object in the heap"});
 ```
 
 Initializers always set the Object's attributes to the following values:
@@ -62,7 +62,7 @@ Initializers always set the Object's attributes to the following values:
 ``` doxygenfunction:: vtInitializeFile
 ```
 
-``` doxygenfunction:: vtInitializeString
+``` doxygenfunction:: vtInitializeStrings
 ```
 
 ``` doxygenfunction:: vtInitializeObj
@@ -84,6 +84,29 @@ Initializers always set the Object's attributes to the following values:
 
 ``` doxygenfunction:: vtStamp
 ```
+
+``` doxygenfunction:: vtClear
+```
+
+``` doxygenfunction:: vtFill
+```
+
+``` doxygenfunction:: vtReplace
+```
+
+``` doxygenfunction:: vtShift
+```
+
+``` doxygenfunction:: vtRotate
+```
+
+``` doxygenfunction:: vtOverlay
+```
+
+``` doxygenfunction:: vtDrawAxes
+```
+
+## Printers
 
 ``` doxygenfunction:: vtPrint
 ```
@@ -117,22 +140,13 @@ Initializers always set the Object's attributes to the following values:
 ``` doxygenfunction:: vtHeight
 ```
 
+``` doxygenfunction:: vtExtremum
+```
+
 ``` doxygenfunction:: vtSetText
 ```
 
-``` doxygenfunction:: vtClear
-```
-
-``` doxygenfunction:: vtFill
-```
-
-``` doxygenfunction:: vtOverlay
-```
-
-``` doxygenfunction:: vtPrintAxes
-```
-
-## Generic Object Operations
+## Object Operations
 
 ``` doxygenfunction:: vtVisible
 ```

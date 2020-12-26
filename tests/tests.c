@@ -5,12 +5,12 @@
 
 typedef VTObj Obj;
 
-void penTest(VTStr penChar) {
+void penTest(VTChar penChar) {
 	puts("pen stroke test:");
 	Obj canvas, p;
 	vtInitializeBlank(&canvas, 1, LTSIZES{{100, 20}});
-	vtInitializeString(&p, 1, LTSTRS{"p"});
-	vtSetPenGlyph(&p, vtChar(penChar));
+	vtInitializeStrings(&p, 1, LTSTRS{"p"});
+	vtSetPenGlyph(&p, penChar);
 
 	vtGotoXY(NULL, &p, -57, 7);
 	for(unsigned int penSize = 1; penSize <= 6; penSize++) {
@@ -36,12 +36,12 @@ void penTest(VTStr penChar) {
 	puts("done");
 }
 
-void alignTest() {
+void alignTest(void) {
 	puts("align test:");
 	Obj canvas, target, viewfinder;
 	vtInitializeBlank(&canvas, 1, LTSIZES{{50, 10}});
-	vtInitializeString(&target, 1, LTSTRS{"0"});
-	vtInitializeString(&viewfinder, 1, LTSTRS{"██\n██"});
+	vtInitializeStrings(&target, 1, LTSTRS{"0"});
+	vtInitializeStrings(&viewfinder, 1, LTSTRS{"██\n██"});
 
 	// top left 2x2
 	vtGotoXY(NULL, &viewfinder, -23, 3);
@@ -67,7 +67,7 @@ void alignTest() {
 	vtAlign(&viewfinder, VT_BOTTOM_RIGHT);
 	vtStamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
-	vtSetText(&viewfinder, LTSTR "███\n███");
+	vtSetText(&viewfinder, true, LTSTR "███\n███");
 
 	// top left 3x2
 	vtGotoXY(NULL, &viewfinder, -2, 3);
@@ -93,7 +93,7 @@ void alignTest() {
 	vtAlign(&viewfinder, VT_BOTTOM_RIGHT);
 	vtStamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
-	vtSetText(&viewfinder, LTSTR "██\n██\n██");
+	vtSetText(&viewfinder, true, LTSTR "██\n██\n██");
 
 	// top left 2x3
 	vtGotoXY(NULL, &viewfinder, -23, -1);
@@ -119,7 +119,7 @@ void alignTest() {
 	vtAlign(&viewfinder, VT_BOTTOM_RIGHT);
 	vtStamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
-	vtSetText(&viewfinder, LTSTR "███\n███\n███");
+	vtSetText(&viewfinder, true, LTSTR "███\n███\n███");
 
 	// top left 3x3
 	vtGotoXY(NULL, &viewfinder, -2, -1);
@@ -151,12 +151,12 @@ void alignTest() {
 	puts("done");
 }
 
-void drawToStringTest() {
+void drawToStringTest(void) {
 	puts("draw to string test:");
 	Obj canvas;
 	unsigned int length;
 	unsigned char *s = NULL;
-	vtInitializeString(&canvas, 1, LTSTRS{"𝄞𝄞𝄞\n𝄞𝄞𝄞"});
+	vtInitializeStrings(&canvas, 1, LTSTRS{"𝄞𝄞𝄞\n𝄞𝄞𝄞"});
 	length = vtPrintToString(&canvas, true, &s);
 	printf("length: %d\n%s\n", length, s);
 	free(s);
@@ -170,24 +170,24 @@ void drawToStringTest() {
 	puts("done");
 }
 
-void collisionTest() {
+void collisionTest(void) {
 	puts("collision test:");
 	Obj canvas, penLayer, pot, circle;
 
 	vtInitializeBlank(&canvas, 1, LTSIZES{{60, 16}});
 	vtInitializeObj(&penLayer, &canvas);
-	vtInitializeString(&pot, 1, LTSTRS{"|░░░░|\n\\░░░░/"});
-	vtInitializeString(&circle, 1, LTSTRS{"\v\v\v____\n\v.'\v\v\v\v`.\n/\v\v\v\v\v\v\v\v\\\n|\v\v\v\v\v\v\v\v|\n\\\v\v\v\v\v\v\v\v/\n\v`.____.'"});
+	vtInitializeStrings(&pot, 1, LTSTRS{"|░░░░|\n\\░░░░/"});
+	vtInitializeStrings(&circle, 1, LTSTRS{"\v\v\v____\n\v.'\v\v\v\v`.\n/\v\v\v\v\v\v\v\v\\\n|\v\v\v\v\v\v\v\v|\n\\\v\v\v\v\v\v\v\v/\n\v`.____.'"});
 
 	vtSetPenSize(&pot, 3);
-	vtSetPenGlyph(&pot, vtChar(LTSTR "░"));
+	vtSetPenGlyph(&pot, vtChar("░"));
 	vtGotoXY(NULL, &pot, 18, 6);
 	vtGotoXY(&penLayer, &pot, 18, -6);
 
 	vtRender(&canvas, 3, LTOBJS{&penLayer, &pot, &circle});
 	vtPrint(&canvas, true);
 	printf("vtIsTouching(&canvas, &circle, 1, VTOBJS{&pot})=%d\n", vtIsTouching(&canvas, &circle, 1, LTOBJS{&pot}));
-	printf("vtIsTouchingGlyph(&penLayer, &circle, vtChar(LTSTR \"░\"))=%d\n", vtIsTouchingGlyph(&penLayer, &circle, vtChar(LTSTR "░")));
+	printf("vtIsTouchingGlyph(&penLayer, &circle, vtChar(\"░\"))=%d\n", vtIsTouchingGlyph(&penLayer, &circle, vtChar("░")));
 	printf("vtIsOutside(&canvas, &circle)=%d\n", vtIsOutside(&canvas, &circle));
 
 	vtGotoX(NULL, &circle, 18);
@@ -195,7 +195,7 @@ void collisionTest() {
 	vtRender(&canvas, 3, LTOBJS{&penLayer, &pot, &circle});
 	vtPrint(&canvas, true);
 	printf("vtIsTouching(&canvas, &circle, 1, VTOBJS{&pot})=%d\n", vtIsTouching(&canvas, &circle, 1, LTOBJS{&pot}));
-	printf("vtIsTouchingGlyph(&penLayer, &circle, vtChar(LTSTR \"░\"))=%d\n", vtIsTouchingGlyph(&penLayer, &circle, vtChar(LTSTR "░")));
+	printf("vtIsTouchingGlyph(&penLayer, &circle, vtChar(\"░\"))=%d\n", vtIsTouchingGlyph(&penLayer, &circle, vtChar("░")));
 	printf("vtIsOutside(&canvas, &circle)=%d\n", vtIsOutside(&canvas, &circle));
 
 	vtGotoY(NULL, &circle, -5);
@@ -203,7 +203,7 @@ void collisionTest() {
 	vtRender(&canvas, 3, LTOBJS{&penLayer, &pot, &circle});
 	vtPrint(&canvas, true);
 	printf("vtIsTouching(&canvas, &circle, 1, VTOBJS{&pot})=%d\n", vtIsTouching(&canvas, &circle, 1, LTOBJS{&pot}));
-	printf("vtIsTouchingGlyph(&penLayer, &circle, vtChar(LTSTR \"░\"))=%d\n", vtIsTouchingGlyph(&penLayer, &circle, vtChar(LTSTR "░")));
+	printf("vtIsTouchingGlyph(&penLayer, &circle, vtChar(\"░\"))=%d\n", vtIsTouchingGlyph(&penLayer, &circle, vtChar("░")));
 	printf("vtIsOutside(&canvas, &circle)=%d\n", vtIsOutside(&canvas, &circle));
 
 	vtChangeY(NULL, &circle, 1);
@@ -211,7 +211,7 @@ void collisionTest() {
 	vtRender(&canvas, 3, LTOBJS{&penLayer, &pot, &circle});
 	vtPrint(&canvas, true);
 	printf("vtIsTouching(&canvas, &circle, 1, VTOBJS{&pot})=%d\n", vtIsTouching(&canvas, &circle, 1, LTOBJS{&pot}));
-	printf("vtIsTouchingGlyph(&penLayer, &circle, vtChar(LTSTR \"░\"))=%d\n", vtIsTouchingGlyph(&penLayer, &circle, vtChar(LTSTR "░")));
+	printf("vtIsTouchingGlyph(&penLayer, &circle, vtChar(\"░\"))=%d\n", vtIsTouchingGlyph(&penLayer, &circle, vtChar("░")));
 	printf("vtIsOutside(&canvas, &circle)=%d\n", vtIsOutside(&canvas, &circle));
 
 	vtClear(&penLayer);
@@ -219,7 +219,7 @@ void collisionTest() {
 	vtRender(&canvas, 3, LTOBJS{&penLayer, &pot, &circle});
 	vtPrint(&canvas, true);
 	printf("vtIsTouching(&canvas, &circle, 1, VTOBJS{&pot})=%d\n", vtIsTouching(&canvas, &circle, 1, LTOBJS{&pot}));
-	printf("vtIsTouchingGlyph(&penLayer, &circle, vtChar(LTSTR \"░\"))=%d\n", vtIsTouchingGlyph(&penLayer, &circle, vtChar(LTSTR "░")));
+	printf("vtIsTouchingGlyph(&penLayer, &circle, vtChar(\"░\"))=%d\n", vtIsTouchingGlyph(&penLayer, &circle, vtChar("░")));
 	printf("vtIsOutside(&canvas, &circle)=%d\n", vtIsOutside(&canvas, &circle));
 
 	vtChangeY(NULL, &circle, -4);
@@ -227,7 +227,7 @@ void collisionTest() {
 	vtRender(&canvas, 3, LTOBJS{&penLayer, &pot, &circle});
 	vtPrint(&canvas, true);
 	printf("vtIsTouching(&canvas, &circle, 1, VTOBJS{&pot})=%d\n", vtIsTouching(&canvas, &circle, 1, LTOBJS{&pot}));
-	printf("vtIsTouchingGlyph(&penLayer, &circle, vtChar(LTSTR \"░\"))=%d\n", vtIsTouchingGlyph(&penLayer, &circle, vtChar(LTSTR "░")));
+	printf("vtIsTouchingGlyph(&penLayer, &circle, vtChar(\"░\"))=%d\n", vtIsTouchingGlyph(&penLayer, &circle, vtChar("░")));
 	printf("vtIsOutside(&canvas, &circle)=%d\n", vtIsOutside(&canvas, &circle));
 	putchar('\n');
 	printf("vtIsTouching(&canvas, &circle, 1, VTOBJS{&circle})=%d\n", vtIsTouching(&canvas, &circle, 1, LTOBJS{&circle}));
@@ -236,10 +236,10 @@ void collisionTest() {
 	puts("done");
 }
 
-void cloneResizeTest() {
+void cloneResizeTest(void) {
 	puts("clone resize test:");
 	Obj objA, objB;
-	vtInitializeString(&objA, 2, LTSTRS{"𝄞𝄞𝄞\n𝄞𝄞𝄞", "𝄢𝄢𝄢𝄢\n𝄢𝄢𝄢𝄢"});
+	vtInitializeStrings(&objA, 2, LTSTRS{"𝄞𝄞𝄞\n𝄞𝄞𝄞", "𝄢𝄢𝄢𝄢\n𝄢𝄢𝄢𝄢"});
 
 	vtInitializeObj(&objB, &objA);
 	vtPrint(&objB, true);
@@ -256,19 +256,19 @@ void cloneResizeTest() {
 	puts("done");
 }
 
-void vtSetSpriteTextTest() {
+void vtSetSpriteTextTest(void) {
 	puts("vtSetSpriteText test:");
 	Obj a;
-	vtInitializeString(&a, 1, LTSTRS{"𝄢𝄢𝄢𝄢\n𝄢𝄢𝄢𝄢"});
+	vtInitializeStrings(&a, 1, LTSTRS{"𝄢𝄢𝄢𝄢\n𝄢𝄢𝄢𝄢"});
 	vtPrint(&a, true);
-	vtSetText(&a, LTSTR "𝄞𝄞𝄞\n𝄞𝄞𝄞");
+	vtSetText(&a, true, LTSTR "𝄞𝄞𝄞\n𝄞𝄞𝄞");
 	vtPrint(&a, true);
 
 	vtRelease(1, LTOBJS{&a});
 	puts("done");
 }
 
-void dynamicMemoryTest() {
+void dynamicMemoryTest(void) {
 	puts("dynamic memory test:");
 
 	puts("1-vtInitializeBlank() with dynamic array of pointer to (dynamic) unsigned int[2]");
@@ -301,7 +301,7 @@ void dynamicMemoryTest() {
 		vtRelease(1, LTOBJS{&a});
 	}
 
-	puts("3-vtInitializeString() with dynamic array of pointer to (dynamic) char");
+	puts("3-vtInitializeStrings() with dynamic array of pointer to (dynamic) char");
 	{
 		Obj a;
 		char **strings = malloc(2*sizeof(uint8_t *));
@@ -309,7 +309,7 @@ void dynamicMemoryTest() {
 		strcpy((char *)strings[0], "𝄞");
 		strings[1] = malloc(7*sizeof(char));
 		strcpy((char *)strings[1], "𝄢");
-		vtInitializeString(&a, 2, (VTStrs)strings);
+		vtInitializeStrings(&a, 2, (VTStrs)strings);
 		free(strings[0]);
 		free(strings[1]);
 		free(strings);
@@ -325,22 +325,22 @@ void dynamicMemoryTest() {
 		strcpy(c, "𝄞");
 		Obj a;
 		vtInitializeBlank(&a, 1, LTSIZES{{2, 2}});
-		vtFill(&a, vtChar((VTStr)c));
+		vtFill(&a, vtChar(c));
 		free(c);
 		vtPrint(&a, true);
 		vtRelease(1, LTOBJS{&a});
 	}
 
-	puts("5-vtInitializeString(), setY(), vtRender() with dynamic array of pointer to (dynamic) Obj");
+	puts("5-vtInitializeStrings(), setY(), vtRender() with dynamic array of pointer to (dynamic) Obj");
 	{
 		Obj canvas;
 		vtInitializeBlank(&canvas, 1, LTSIZES{{3, 3}});
 		Obj **objs = malloc(2*sizeof(Obj *));
 		objs[0] = malloc(sizeof(Obj));
-		vtInitializeString(objs[0], 1, LTSTRS{"𝄞"});
+		vtInitializeStrings(objs[0], 1, LTSTRS{"𝄞"});
 		vtGotoY(NULL, objs[0], 1);
 		objs[1] = malloc(sizeof(Obj));
-		vtInitializeString(objs[1], 1, LTSTRS{"𝄢"});
+		vtInitializeStrings(objs[1], 1, LTSTRS{"𝄢"});
 		vtGotoY(NULL, objs[1], -1);
 
 		vtRender(&canvas, 2, (VTObjs)objs);
@@ -355,23 +355,23 @@ void dynamicMemoryTest() {
 	puts("done");
 }
 
-void printAxesTest() {
-	puts("vtPrintAxes() test:");
+void printAxesTest(void) {
+	puts("vtDrawAxes() test:");
 	Obj canvas;
 	vtInitializeBlank(&canvas, 1, LTSIZES{{9, 5}});
-	vtPrintAxes(&canvas);
+	vtDrawAxes(&canvas);
 	vtPrint(&canvas, true);
 	vtResize(&canvas, 8, 6);
-	vtPrintAxes(&canvas);
+	vtDrawAxes(&canvas);
 	vtPrint(&canvas, true);
 	vtRelease(1, LTOBJS{&canvas});
 	puts("done");
 }
 
-void serializationTest() {
+void serializationTest(void) {
 	puts("serialization test:");
 	Obj obj;
-	vtInitializeString(&obj, 1, LTSTRS{"a ¶ ╭ 𝄞"});
+	vtInitializeStrings(&obj, 1, LTSTRS{"a ¶ ╭ 𝄞"});
 	uint32_t *const v = malloc(vtSerializedArraySize(&obj));
 	vtSerialize(&obj, v);
 	vtSerialize(&obj, NULL);
@@ -384,16 +384,16 @@ void serializationTest() {
 	puts("done");
 }
 
-void dinosaur() {
+void dinosaur(void) {
 	puts("dinosaur:");
 	Obj dinosaur;
-	vtInitializeString(&dinosaur, 1, LTSTRS{"\v\v\v\v\v\v\v\v\v\v\v\v╭━━━\n\v\v\v╭━━╮\v\v\v\v\v┃RAWR\n\v\v╭╯┊◣╰━━━╮\v╰┳━━\n\v\v┃┊┊┊╱▽▽▽┛\v\v┃\v\v\n\v\v┃┊┊┊▏━━━━━━╯\v\v\n━━╯┊┊┊╲△△△┓\v\v\v\v\v\n┊┊┊┊╭━━━━━╯\v\v\v\v\v"});
+	vtInitializeStrings(&dinosaur, 1, LTSTRS{"\v\v\v\v\v\v\v\v\v\v\v\v╭━━━\n\v\v\v╭━━╮\v\v\v\v\v┃RAWR\n\v\v╭╯┊◣╰━━━╮\v╰┳━━\n\v\v┃┊┊┊╱▽▽▽┛\v\v┃\v\v\n\v\v┃┊┊┊▏━━━━━━╯\v\v\n━━╯┊┊┊╲△△△┓\v\v\v\v\v\n┊┊┊┊╭━━━━━╯\v\v\v\v\v"});
 	vtPrint(&dinosaur, false);
 	vtRelease(1, LTOBJS{&dinosaur});
 	puts("done");
 }
 
-int main() {
+int main(void) {
 	vtAbout();
 	puts("\nThese tests are meant to be ran with Valgrind: https://valgrind.org/\n");
 
@@ -405,7 +405,7 @@ int main() {
 	//	printf("sizeof(CharMap)=%lu alignof(CharMap)=%lu\n", sizeof(CharMap), alignof(CharMap));
 	//	printf("sizeof(Obj)=%lu alignof(Obj)=%lu\n", sizeof(Obj), alignof(Obj));
 
-	penTest(LTSTR "█");
+	penTest(vtChar("█"));
 	alignTest();
 	drawToStringTest();
 	collisionTest();

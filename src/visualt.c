@@ -53,7 +53,7 @@ typedef struct BoolMap {
 #define normalizePosition(GLYPHMAP, SPRITE, SPRITEX, SPRITEY, X, Y)  (X) = (GLYPHMAP)->width/2-(SPRITE)->width/2+(SPRITEX);  \
                                                                       (Y) = (GLYPHMAP)->height/2-(SPRITE)->height/2-(SPRITEY)
 
-inline static VTChar humanizeSwapChar(VTChar implChar) {
+static inline VTChar humanizeSwapChar(VTChar implChar) {
 	#ifndef VISUALT_IS_BIG_ENDIAN
 	implChar = endiannessSwap32(implChar);
 	#endif
@@ -72,57 +72,58 @@ inline static VTChar humanizeSwapChar(VTChar implChar) {
 	return implChar;
 }
 
-static void initializeGlyphMapString(GlyphMap *const glyphMap, uint8_t const *const utf8Text) {
-	int glyphMapWidth = 1, glyphMapHeight = 1;
+static void initializeGlyphMapString(GlyphMap *const sprite, uint8_t const *const utf8Text) {
+	int spriteWidth = 1, spriteHeight = 1;
 
 	//calculate dimensions
 	for(int width = 0, i = 0; utf8Text[i] != '\0'; i++) {
 		if((utf8Text[i]&0xc0u) != 0x80) { // partial code point: 10xx xxxx
 			if(utf8Text[i] == '\n') {
-				glyphMapHeight++;
+				spriteHeight++;
 				width = 0;
 			} else {
 				width++;
-				if(width > glyphMapWidth) {
-					glyphMapWidth = width;
+				if(width > spriteWidth) {
+					spriteWidth = width;
 				}
 			}
 		}
 	}
-	initializeMap(Glyphs, glyphMap, glyphMapWidth, glyphMapHeight);
-	clearMap(Glyphs, glyphMap);
+	initializeMap(Glyphs, sprite, spriteWidth, spriteHeight);
+	clearMap(Glyphs, sprite);
 	//parse
-	{
-		int i = 0;
-		for(int y = 0; y < glyphMapHeight; i++, y++) {
-			for(int x = 0; x < glyphMapWidth; x++) {
-				uint8_t *const bytes = (uint8_t *)&glyphMap->chars[x+y*glyphMapWidth];
-				if(utf8Text[i] >= 0xf0) {         //4B code point: 1111 0xxx
-					bytes[0] = utf8Text[i++];
-					bytes[1] = utf8Text[i++];
-					bytes[2] = utf8Text[i++];
-					bytes[3] = utf8Text[i++];
-				} else if(utf8Text[i] >= 0xe0) {  //3B code point: 1110 xxxx
-					bytes[0] = utf8Text[i++];
-					bytes[1] = utf8Text[i++];
-					bytes[2] = utf8Text[i++];
-				} else if(utf8Text[i] >= 0xc2) {  //2B code point: 110x xxxx
-					bytes[0] = utf8Text[i++];
-					bytes[1] = utf8Text[i++];
-				} else if(utf8Text[i] == '\v') {  //1B empty
-					i++;
-				} else if(utf8Text[i] == '\n' || utf8Text[i] == '\0') {
-					break;
-				} else {                          //1B code point: 0xxx xxxx
-					bytes[0] = utf8Text[i++];
-				}
+	for(int i = 0, y = 0; y < spriteHeight; y++) {
+		for(int x = 0;; x++) {
+			if(utf8Text[i] == '\n' || utf8Text[i] == '\0') {
+				i++;
+				break;
+			}
+			if(utf8Text[i] == '\v') {  //1B empty
+				i++;
+				continue;
+			}
+			uint8_t *const bytes = (uint8_t *)&sprite->chars[x+y*spriteWidth];
+			if(utf8Text[i] >= 0xf0) {         //4B code point: 1111 0xxx
+				bytes[0] = utf8Text[i++];
+				bytes[1] = utf8Text[i++];
+				bytes[2] = utf8Text[i++];
+				bytes[3] = utf8Text[i++];
+			} else if(utf8Text[i] >= 0xe0) {  //3B code point: 1110 xxxx
+				bytes[0] = utf8Text[i++];
+				bytes[1] = utf8Text[i++];
+				bytes[2] = utf8Text[i++];
+			} else if(utf8Text[i] >= 0xc2) {  //2B code point: 110x xxxx
+				bytes[0] = utf8Text[i++];
+				bytes[1] = utf8Text[i++];
+			} else {                          //1B code point: 0xxx xxxx
+				bytes[0] = utf8Text[i++];
 			}
 		}
 	}
 }
 
-static void printGlyphMap(GlyphMap const *const glyphMap, bool const border) {
-	int const width = glyphMap->width, height = glyphMap->height;
+static void printGlyphMap(GlyphMap const *const sprite, bool const border) {
+	int const width = sprite->width, height = sprite->height;
 	uint8_t *const buffer = malloc((size_t)width*sizeof(VTChar)+sizeof(uint8_t)*7); //2*3B '|' + 1B '\0'
 
 	if(border) {
@@ -149,7 +150,7 @@ static void printGlyphMap(GlyphMap const *const glyphMap, bool const border) {
 			buffer[i++] = 0x82;  //│
 		}
 		for(int x = 0; x < width; x++) {
-			uint8_t const *const bytes = (uint8_t *)&glyphMap->chars[x+y*width];
+			uint8_t const *const bytes = (uint8_t *)&sprite->chars[x+y*width];
 			if(bytes[0] >= 0xf0) {        //4B code point: 1111 0xxx
 				buffer[i++] = bytes[0];
 				buffer[i++] = bytes[1];
@@ -195,13 +196,13 @@ static void printGlyphMap(GlyphMap const *const glyphMap, bool const border) {
 	free(buffer);
 }
 
-static size_t stringifyGlyphMapSize(GlyphMap const *const glyphMap, bool const border) {
-	int const width = glyphMap->width, height = glyphMap->height;
+static size_t stringifiedGlyphMapSize(GlyphMap const *const sprite, bool const border) {
+	int const width = sprite->width, height = sprite->height;
 	int length = 0;
 
 	for(int y = 0; y < height; length++, y++) {
 		for(int x = 0; x < width; x++) {
-			uint8_t const *const bytes = (uint8_t *)&glyphMap->chars[x+y*width];
+			uint8_t const *const bytes = (uint8_t *)&sprite->chars[x+y*width];
 			if(bytes[0] >= 0xf0) {        //4B code point: 1111 0xxx
 				length += 4;
 			} else if(bytes[0] >= 0xe0) { //3B code point: 1110 xxxx
@@ -220,10 +221,10 @@ static size_t stringifyGlyphMapSize(GlyphMap const *const glyphMap, bool const b
 	return (size_t)length*sizeof(uint8_t);
 }
 
-static size_t stringifyGlyphMap(GlyphMap const *const glyphMap, bool const border, uint8_t **const utf8String) {
-	int const width = glyphMap->width, height = glyphMap->height;
-	VTChar const *const chars = glyphMap->chars;
-	size_t const size = stringifyGlyphMapSize(glyphMap, border);
+static size_t stringifyGlyphMap(GlyphMap const *const sprite, bool const border, uint8_t **const utf8String) {
+	int const width = sprite->width, height = sprite->height;
+	VTChar const *const chars = sprite->chars;
+	size_t const size = stringifiedGlyphMapSize(sprite, border);
 	if(!*utf8String) {
 		*utf8String = malloc(size);
 	}
@@ -297,14 +298,14 @@ static size_t stringifyGlyphMap(GlyphMap const *const glyphMap, bool const borde
 	return size;
 }
 
-static void stamp(GlyphMap const *const glyphMap, GlyphMap const *const sprite, int spriteX, int spriteY, bool const reversed) {
-	normalizePosition(glyphMap, sprite, spriteX, spriteY, spriteX, spriteY);
+static void stamp(GlyphMap const *const restrict canvas, GlyphMap const *const restrict sprite, int spriteX, int spriteY, bool const reversed) {
+	normalizePosition(canvas, sprite, spriteX, spriteY, spriteX, spriteY);
 	if(reversed) {
 		for(int y = 0; y < sprite->height; y++) {
 			for(int x = 0; x < sprite->width; x++) {
-				if(sprite->chars[x+y*sprite->width] && spriteX+x >= 0 && spriteX+x < glyphMap->width && spriteY+y >= 0 && spriteY+y < glyphMap->height) {
-					if(!glyphMap->chars[(spriteX+x)+(spriteY+y)*glyphMap->width]) {
-						glyphMap->chars[(spriteX+x)+(spriteY+y)*glyphMap->width] = sprite->chars[x+y*sprite->width];
+				if(sprite->chars[x+y*sprite->width] && spriteX+x >= 0 && spriteX+x < canvas->width && spriteY+y >= 0 && spriteY+y < canvas->height) {
+					if(!canvas->chars[(spriteX+x)+(spriteY+y)*canvas->width]) {
+						canvas->chars[(spriteX+x)+(spriteY+y)*canvas->width] = sprite->chars[x+y*sprite->width];
 					}
 				}
 			}
@@ -312,37 +313,37 @@ static void stamp(GlyphMap const *const glyphMap, GlyphMap const *const sprite, 
 	} else {
 		for(int y = 0; y < sprite->height; y++) {
 			for(int x = 0; x < sprite->width; x++) {
-				if(sprite->chars[x+y*sprite->width] && spriteX+x >= 0 && spriteX+x < glyphMap->width && spriteY+y >= 0 && spriteY+y < glyphMap->height) {
-					glyphMap->chars[(spriteX+x)+(spriteY+y)*glyphMap->width] = sprite->chars[x+y*sprite->width];
+				if(sprite->chars[x+y*sprite->width] && spriteX+x >= 0 && spriteX+x < canvas->width && spriteY+y >= 0 && spriteY+y < canvas->height) {
+					canvas->chars[(spriteX+x)+(spriteY+y)*canvas->width] = sprite->chars[x+y*sprite->width];
 				}
 			}
 		}
 	}
 }
 
-static void mask(BoolMap const *const boolMap, GlyphMap const *const sprite, int spriteX, int spriteY) {
-	normalizePosition(boolMap, sprite, spriteX, spriteY, spriteX, spriteY);
+static void mask(BoolMap const *const mask, GlyphMap const *const sprite, int spriteX, int spriteY) {
+	normalizePosition(mask, sprite, spriteX, spriteY, spriteX, spriteY);
 	for(int y = 0; y < sprite->height; y++) {
 		for(int x = 0; x < sprite->width; x++) {
-			if(sprite->chars[x+y*sprite->width] && spriteX+x >= 0 && spriteX+x < boolMap->width && spriteY+y >= 0 && spriteY+y < boolMap->height) {
-				boolMap->chars[(spriteX+x)+(spriteY+y)*boolMap->width] = true;
+			if(sprite->chars[x+y*sprite->width] && spriteX+x >= 0 && spriteX+x < mask->width && spriteY+y >= 0 && spriteY+y < mask->height) {
+				mask->chars[(spriteX+x)+(spriteY+y)*mask->width] = true;
 			}
 		}
 	}
 }
 
-static void render(GlyphMap const *const glyphMap, unsigned int const objsLength, Obj const *const *const objs, bool const clearGlyphMap) {
+static void render(GlyphMap const *const canvas, unsigned int const objsLength, Obj const *const *const objs, bool const clearGlyphMap) {
 	if(clearGlyphMap) {
-		clearMap(Glyphs, glyphMap);
+		clearMap(Glyphs, canvas);
 		for(unsigned int i = objsLength; i-- > 0;) {
 			if(objs[i]->visible) {
-				stamp(glyphMap, objs[i]->activeSprite, objs[i]->x, objs[i]->y, true);
+				stamp(canvas, objs[i]->activeSprite, objs[i]->x, objs[i]->y, true);
 			}
 		}
 	} else {
 		for(unsigned int i = 0; i < objsLength; i++) {
 			if(objs[i]->visible) {
-				stamp(glyphMap, objs[i]->activeSprite, objs[i]->x, objs[i]->y, false);
+				stamp(canvas, objs[i]->activeSprite, objs[i]->x, objs[i]->y, false);
 			}
 		}
 	}
@@ -399,7 +400,7 @@ static void line(GlyphMap const *const canvas, unsigned short const penSize, VTC
 }
 
 //----MISC----
-void vtAbout() {
+void vtAbout(void) {
 	puts("                 .:Visual T:.\n"
 			 "     ver " VISUALT_VERSION "  " VISUALT_BUILD_DATE
 			 "\n"
@@ -414,23 +415,24 @@ void vtAbout() {
 			 "                           jgs   \\(__)|\n");
 }
 
-uint32_t vtChar(VTStr ltChar) {
-	uint32_t vtChar = 0;
+VTChar vtChar(char const *const ltChar) {
+	VTStr const utf8Text = (VTStr)ltChar;
+	VTChar vtChar = 0;
 	uint8_t *const bytes = (uint8_t *)&vtChar;
-	if(ltChar[0] >= 0xf0) {        //4B code point: 1111 0xxx
-		bytes[0] = ltChar[0];
-		bytes[1] = ltChar[1];
-		bytes[2] = ltChar[2];
-		bytes[3] = ltChar[3];
-	} else if(ltChar[0] >= 0xe0) {  //3B code point: 1110 xxxx
-		bytes[0] = ltChar[0];
-		bytes[1] = ltChar[1];
-		bytes[2] = ltChar[2];
-	} else if(ltChar[0] >= 0xc2) {  //2B code point: 110x xxxx
-		bytes[0] = ltChar[0];
-		bytes[1] = ltChar[1];
-	} else if(ltChar[0] != '\v') {  //1B code point: 0xxx xxxx
-		bytes[0] = ltChar[0];
+	if(utf8Text[0] >= 0xf0) {        //4B code point: 1111 0xxx
+		bytes[0] = utf8Text[0];
+		bytes[1] = utf8Text[1];
+		bytes[2] = utf8Text[2];
+		bytes[3] = utf8Text[3];
+	} else if(utf8Text[0] >= 0xe0) {  //3B code point: 1110 xxxx
+		bytes[0] = utf8Text[0];
+		bytes[1] = utf8Text[1];
+		bytes[2] = utf8Text[2];
+	} else if(utf8Text[0] >= 0xc2) {  //2B code point: 110x xxxx
+		bytes[0] = utf8Text[0];
+		bytes[1] = utf8Text[1];
+	} else if(utf8Text[0] != '\v') {  //1B code point: 0xxx xxxx
+		bytes[0] = utf8Text[0];
 	}
 	return vtChar;
 }
@@ -492,7 +494,7 @@ void vtInitializeFile(Obj *const obj, FILE *const file) {
 	free(v);
 }
 
-void vtInitializeString(Obj *const obj, unsigned int utf8StringsLength, VTStrs const utf8Strings) {
+void vtInitializeStrings(Obj *obj, unsigned int utf8StringsLength, VTStrs utf8Strings) {
 	assert(obj);
 	assert(utf8StringsLength > 0);
 	assert(utf8Strings);
@@ -556,7 +558,7 @@ void vtResize(Obj *const obj, unsigned int const width, unsigned int const heigh
 }
 
 //----REFRESH----
-void vtRender(Obj const *const canvas, unsigned int const objsLength, VTObjs const objs) {
+void vtRender(Obj const *const restrict canvas, unsigned int const objsLength, VTObjs const objs) {
 	assert(canvas);
 	assert(objsLength > 0);
 	assert(objs);
@@ -564,7 +566,7 @@ void vtRender(Obj const *const canvas, unsigned int const objsLength, VTObjs con
 	render(canvas->activeSprite, objsLength, objs, true);
 }
 
-void vtStamp(Obj const *const canvas, unsigned int const objsLength, VTObjs const objs) {
+void vtStamp(Obj const *const restrict canvas, unsigned int const objsLength, VTObjs const objs) {
 	assert(canvas);
 	assert(objsLength > 0);
 	assert(objs);
@@ -572,23 +574,23 @@ void vtStamp(Obj const *const canvas, unsigned int const objsLength, VTObjs cons
 	render(canvas->activeSprite, objsLength, objs, false);
 }
 
-void vtPrint(Obj const *const canvas, bool const border) {
-	assert(canvas);
+void vtPrint(Obj const *const obj, bool const border) {
+	assert(obj);
 
-	printGlyphMap(canvas->activeSprite, border);
+	printGlyphMap(obj->activeSprite, border);
 }
 
-size_t vtPrintToString(Obj const *const canvas, bool const border, uint8_t **const utf8Buffer) {
-	assert(canvas);
+size_t vtPrintToString(Obj const *const obj, bool const border, uint8_t **const utf8Buffer) {
+	assert(obj);
 	assert(utf8Buffer);
 
-	return stringifyGlyphMap(canvas->activeSprite, border, utf8Buffer);
+	return stringifyGlyphMap(obj->activeSprite, border, utf8Buffer);
 }
 
-size_t vtPrintStringSize(VTObj const *canvas, bool border) {
-	assert(canvas);
+size_t vtPrintStringSize(Obj const *obj, bool border) {
+	assert(obj);
 
-	return stringifyGlyphMapSize(canvas->activeSprite, border);
+	return stringifiedGlyphMapSize(obj->activeSprite, border);
 }
 
 //----SPRITE----
@@ -616,7 +618,7 @@ void vtPrecSprite(Obj *const obj) {
 	obj->activeSprite = &(obj->sprites[(obj->activeSprite-obj->sprites+obj->length-1)%obj->length]);
 }
 
-void vtSetSprite(VTObj *obj, unsigned int const index) {
+void vtSetSprite(Obj *obj, unsigned int const index) {
 	assert(obj);
 	assert(index < obj->length);
 
@@ -635,25 +637,215 @@ int vtHeight(Obj const *const obj) {
 	return obj->activeSprite->height;
 }
 
-void vtSetText(Obj *const obj, VTStr const utf8String) {
+int vtExtremum(Obj const *const obj, VTDirection const direction) {
+	int const width = obj->activeSprite->width, height = obj->activeSprite->height;
+	switch(direction) {
+		default:
+		case VT_LEFT:
+			return -width/2;
+		case VT_RIGHT:
+			return width-width/2-1;
+		case VT_TOP:
+			return height/2;
+		case VT_BOTTOM:
+			return -height+height/2+1;
+	}
+}
+
+void vtSetText(Obj *const obj, bool fitToContent, VTStr const utf8String) {
 	assert(obj);
 	assert(utf8String);
 
-	freeMap(obj->activeSprite);
-	initializeGlyphMapString(obj->activeSprite, utf8String);
+	if(fitToContent) {
+		freeMap(obj->activeSprite);
+		initializeGlyphMapString(obj->activeSprite, utf8String);
+	} else {
+		GlyphMap const *const sprite = obj->activeSprite;
+		clearMap(Glyphs, sprite);
+
+		for(int y = 0, x = 0, i = 0; utf8String[i] != 0;) {
+			if(utf8String[i] == '\n') {
+				x = 0;
+				y++;
+				i++;
+				continue;
+			}
+			VTChar t = 0;
+			uint8_t *const bytes = (uint8_t *)&t;
+			if(utf8String[i] == '\v') {         //1B empty
+				i++;
+			} else if(utf8String[i] >= 0xf0) {  //4B code point: 1111 0xxx
+				bytes[0] = utf8String[i++];
+				bytes[1] = utf8String[i++];
+				bytes[2] = utf8String[i++];
+				bytes[3] = utf8String[i++];
+			} else if(utf8String[i] >= 0xe0) {  //3B code point: 1110 xxxx
+				bytes[0] = utf8String[i++];
+				bytes[1] = utf8String[i++];
+				bytes[2] = utf8String[i++];
+			} else if(utf8String[i] >= 0xc2) {  //2B code point: 110x xxxx
+				bytes[0] = utf8String[i++];
+				bytes[1] = utf8String[i++];
+			} else {                            //1B code point: 0xxx xxxx
+				bytes[0] = utf8String[i++];
+			}
+			if(x < sprite->width && y < sprite->height) {
+				sprite->chars[x+y*sprite->width] = t;
+			}
+			x++;
+		}
+	}
 }
 
-void vtClear(Obj const *const canvas) {
-	assert(canvas);
+void vtClear(Obj const *const obj) {
+	assert(obj);
 
-	clearMap(Glyphs, canvas->activeSprite);
+	clearMap(Glyphs, obj->activeSprite);
 }
 
-void vtFill(Obj const *canvas, VTChar const fillChar) {
-	assert(canvas);
+void vtFill(Obj const *const obj, VTChar const fillChar) {
+	assert(obj);
 
-	for(int i = canvas->activeSprite->width*canvas->activeSprite->height; --i >= 0;) {
-		canvas->activeSprite->chars[i] = fillChar;
+	for(int i = 0; i < obj->activeSprite->width*obj->activeSprite->height; i++) {
+		obj->activeSprite->chars[i] = fillChar;
+	}
+}
+
+void vtReplace(Obj const *const obj, VTChar const oldChar, VTChar const newChar) {
+	assert(obj);
+
+	for(int i = 0; i < obj->activeSprite->width*obj->activeSprite->height; i++) {
+		if(obj->activeSprite->chars[i] == oldChar) {
+			obj->activeSprite->chars[i] = newChar;
+		}
+	}
+}
+
+void vtShift(Obj const *const obj, VTDirection direction, int amount) {
+	assert(obj);
+
+	if(amount < 0) {
+		amount = -amount;
+		if(direction <= 1) {
+			direction = 1-direction;
+		} else {
+			direction = 1-(direction-2)+2;
+		}
+	}
+	GlyphMap const *const sprite = obj->activeSprite;
+	switch(direction) {
+		default:
+		case VT_LEFT:
+			for(int y = 0; y < sprite->height; y++) {
+				int x = 0;
+				for(; x+amount < sprite->width; x++) {
+					sprite->chars[x+y*sprite->width] = sprite->chars[x+amount+y*sprite->width];
+				}
+				for(; x < sprite->width; x++) {
+					sprite->chars[x+y*sprite->width] = 0;
+				}
+			}
+			break;
+		case VT_RIGHT:
+			for(int y = 0; y < sprite->height; y++) {
+				int x = sprite->width-1;
+				for(; x-amount >= 0; x--) {
+					sprite->chars[x+y*sprite->width] = sprite->chars[x-amount+y*sprite->width];
+				}
+				for(; x >= 0; x--) {
+					sprite->chars[x+y*sprite->width] = 0;
+				}
+			}
+			break;
+		case VT_TOP:
+			for(int x = 0; x < sprite->width; x++) {
+				int y = 0;
+				for(; y+amount < sprite->height; y++) {
+					sprite->chars[x+y*sprite->width] = sprite->chars[x+(y+amount)*sprite->width];
+				}
+				for(; y < sprite->height; y++) {
+					sprite->chars[x+y*sprite->width] = 0;
+				}
+			}
+			break;
+		case VT_BOTTOM:
+			for(int x = 0; x < sprite->width; x++) {
+				int y = sprite->height-1;
+				for(; y-amount >= 0; y--) {
+					sprite->chars[x+y*sprite->width] = sprite->chars[x+(y-amount)*sprite->width];
+				}
+				for(; y >= 0; y--) {
+					sprite->chars[x+y*sprite->width] = 0;
+				}
+			}
+			break;
+	}
+}
+
+void vtRotate(Obj const *const obj, VTDirection direction, int amount) {
+	assert(obj);
+
+	GlyphMap const *const sprite = obj->activeSprite;
+	if(amount < 0) {
+		amount = -amount;
+		if(direction <= 1) {
+			amount %= sprite->width;
+			direction = 1-direction;
+		} else {
+			amount %= sprite->height;
+			direction = 1-(direction-2)+2;
+		}
+	}
+	switch(direction) {
+		default:
+		case VT_LEFT:
+			for(int y = 0; y < sprite->height; y++) {
+				for(int k = 0; k < amount; k++) {
+					int x = 0;
+					VTChar t = sprite->chars[x+y*sprite->width];
+					for(; x+1 < sprite->width; x++) {
+						sprite->chars[x+y*sprite->width] = sprite->chars[x+1+y*sprite->width];
+					}
+					sprite->chars[x+y*sprite->width] = t;
+				}
+			}
+			break;
+		case VT_RIGHT:
+			for(int y = 0; y < sprite->height; y++) {
+				for(int k = 0; k < amount; k++) {
+					int x = sprite->width-1;
+					VTChar t = sprite->chars[x+y*sprite->width];
+					for(; x-1 >= 0; x--) {
+						sprite->chars[x+y*sprite->width] = sprite->chars[x-1+y*sprite->width];
+					}
+					sprite->chars[x+y*sprite->width] = t;
+				}
+			}
+			break;
+		case VT_TOP:
+			for(int x = 0; x < sprite->width; x++) {
+				for(int k = 0; k < amount; k++) {
+					int y = 0;
+					VTChar t = sprite->chars[x+y*sprite->width];
+					for(; y+1 < sprite->height; y++) {
+						sprite->chars[x+y*sprite->width] = sprite->chars[x+(y+1)*sprite->width];
+					}
+					sprite->chars[x+y*sprite->width] = t;
+				}
+			}
+			break;
+		case VT_BOTTOM:
+			for(int x = 0; x < sprite->width; x++) {
+				for(int k = 0; k < amount; k++) {
+					int y = sprite->height-1;
+					VTChar t = sprite->chars[x+y*sprite->width];
+					for(; y-1 >= 0; y--) {
+						sprite->chars[x+y*sprite->width] = sprite->chars[x+(y-1)*sprite->width];
+					}
+					sprite->chars[x+y*sprite->width] = t;
+				}
+			}
+			break;
 	}
 }
 
@@ -672,41 +864,41 @@ void vtOverlay(Obj const *const dest, unsigned int const spriteDest, Obj const *
 	}
 }
 
-void vtPrintAxes(Obj const *const canvas) {
-	assert(canvas);
-	VTChar *const chars = canvas->activeSprite->chars;
-	int const width = canvas->activeSprite->width, height = canvas->activeSprite->height;
+void vtDrawAxes(Obj const *obj) {
+	assert(obj);
+	VTChar *const chars = obj->activeSprite->chars;
+	int const width = obj->activeSprite->width, height = obj->activeSprite->height;
 	int const centerX = width/2, centerY = height/2;
 	char value[12];
 	Obj label;
 
 	for(int i = 0; i < centerX; i++) {
-		chars[i+centerY*width] = vtChar(LTSTR "┄");
+		chars[i+centerY*width] = vtChar("┄");
 	}
 	for(int i = centerX+1; i < width; i++) {
-		chars[i+centerY*width] = vtChar(LTSTR "─");
+		chars[i+centerY*width] = vtChar("─");
 	}
 	for(int i = 0; i < centerY; i++) {
-		chars[centerX+i*width] = vtChar(LTSTR "│");
+		chars[centerX+i*width] = vtChar("│");
 	}
 	for(int i = centerY+1; i < height; i++) {
-		chars[centerX+i*width] = vtChar(LTSTR "┊");
+		chars[centerX+i*width] = vtChar("┊");
 	}
 	sprintf(value, "%+d", -centerX);
-	vtInitializeString(&label, 1, LTSTRS{value});
-	stamp(canvas->activeSprite, label.activeSprite, (-centerX)+(label.activeSprite->width/2), 0, false);
+	vtInitializeStrings(&label, 1, LTSTRS{value});
+	stamp(obj->activeSprite, label.activeSprite, (-centerX)+(label.activeSprite->width/2), 0, false);
 
 	sprintf(value, "%+d", width-centerX-1);
-	vtSetText(&label, (VTStr)value);
-	stamp(canvas->activeSprite, label.activeSprite, (width-centerX-1)-(label.activeSprite->width-label.activeSprite->width/2-1), 0, false);
+	vtSetText(&label, true, (VTStr)value);
+	stamp(obj->activeSprite, label.activeSprite, (width-centerX-1)-(label.activeSprite->width-label.activeSprite->width/2-1), 0, false);
 
 	sprintf(value, "%+d", centerY);
-	vtSetText(&label, (VTStr)value);
-	stamp(canvas->activeSprite, label.activeSprite, 0, centerY, false);
+	vtSetText(&label, true, (VTStr)value);
+	stamp(obj->activeSprite, label.activeSprite, 0, centerY, false);
 
 	sprintf(value, "%+d", -height+centerY+1);
-	vtSetText(&label, (VTStr)value);
-	stamp(canvas->activeSprite, label.activeSprite, 0, -height+centerY+1, false);
+	vtSetText(&label, true, (VTStr)value);
+	stamp(obj->activeSprite, label.activeSprite, 0, -height+centerY+1, false);
 
 	vtRelease(1, LTOBJS{&label});
 	chars[centerX+centerY*width] = '0';
@@ -737,11 +929,11 @@ void vtSerialize(Obj const *const obj, VTChar *const v) {
 	assert(obj);
 
 	if(v) {
-		v[0] = (uint32_t)obj->length;
+		v[0] = (VTChar)obj->length;
 		for(unsigned int i = 0, j = 1; i < obj->length; i++) {
 			GlyphMap *const sprite = &obj->sprites[i];
-			v[j++] = (uint32_t)sprite->width;
-			v[j++] = (uint32_t)sprite->height;
+			v[j++] = (VTChar)sprite->width;
+			v[j++] = (VTChar)sprite->height;
 			for(int y = 0; y < sprite->height; y++) {
 				for(int x = 0; x < sprite->width; x++, j++) {
 					v[j] = humanizeSwapChar(sprite->chars[x+y*sprite->width]);
@@ -770,11 +962,11 @@ size_t vtSerializedArraySize(Obj const *const obj) {
 		length += 2 //sprite dimensions
 				+obj->sprites[i].width*obj->sprites[i].height;
 	}
-	return (size_t)length*sizeof(uint32_t);
+	return (size_t)length*sizeof(VTChar);
 }
 
 //----PEN----
-VTChar vtPenGlyph(VTObj const *obj) {
+VTChar vtPenGlyph(Obj const *obj) {
 	assert(obj);
 	return obj->penChar;
 }
@@ -789,7 +981,7 @@ void vtSetPenSize(Obj *const obj, unsigned short const size) {
 	obj->penSize = (size >= 1 && size <= 6) ? size : (unsigned short)1;
 }
 
-void vtSetPenGlyph(VTObj *obj, VTChar penChar) {
+void vtSetPenGlyph(Obj *obj, VTChar penChar) {
 	assert(obj);
 	obj->penChar = penChar;
 }
@@ -876,6 +1068,7 @@ void vtAlign(Obj *const obj, VTAlign const position) {
 	}
 }
 
+//----SENSORS----
 bool vtIsTouching(Obj const *const canvas, Obj const *const obj, unsigned int objsLength, VTObjs const objs) {
 	assert(canvas);
 	assert(obj);
@@ -910,18 +1103,20 @@ bool vtIsTouching(Obj const *const canvas, Obj const *const obj, unsigned int ob
 	return false;
 }
 
-bool vtIsTouchingGlyph(VTObj const *canvas, VTObj const *obj, VTChar testChar) {
+bool vtIsTouchingGlyph(Obj const *const canvas, Obj const *const obj, VTChar testChar) {
 	assert(canvas);
 	assert(obj);
 
 	if(obj->visible) {
-		GlyphMap const *const glyphMap = canvas->activeSprite, *const sprite = obj->activeSprite;
+		GlyphMap const *const canvasSprite = canvas->activeSprite, *const sprite = obj->activeSprite;
 		int spriteX, spriteY;
-		normalizePosition(glyphMap, sprite, obj->x, obj->y, spriteX, spriteY);
+		normalizePosition(canvasSprite, sprite, obj->x, obj->y, spriteX, spriteY);
 		for(int y = 0; y < sprite->height; y++) {
 			for(int x = 0; x < sprite->width; x++) {
-				if(sprite->chars[x+y*sprite->width] && spriteX+x >= 0 && spriteX+x < glyphMap->width && spriteY+y >= 0 && spriteY+y < glyphMap->height && glyphMap->chars[(spriteX+x)+(spriteY+y)*glyphMap->width] == testChar) {
-					return true;
+				if(sprite->chars[x+y*sprite->width] && spriteX+x >= 0 && spriteX+x < canvasSprite->width && spriteY+y >= 0 && spriteY+y < canvasSprite->height) {
+					if(canvasSprite->chars[(spriteX+x)+(spriteY+y)*canvasSprite->width] == testChar) {
+						return true;
+					}
 				}
 			}
 		}
@@ -934,12 +1129,12 @@ bool vtIsOutside(Obj const *const canvas, Obj const *const obj) {
 	assert(obj);
 
 	if(obj->visible) {
-		GlyphMap const *const glyphMap = canvas->activeSprite, *const sprite = obj->activeSprite;
+		GlyphMap const *const canvasSprite = canvas->activeSprite, *const sprite = obj->activeSprite;
 		int spriteX, spriteY;
-		normalizePosition(glyphMap, sprite, obj->x, obj->y, spriteX, spriteY);
+		normalizePosition(canvasSprite, sprite, obj->x, obj->y, spriteX, spriteY);
 		for(int y = 0; y < sprite->height; y++) {
 			for(int x = 0; x < sprite->width; x++) {
-				if(sprite->chars[x+y*sprite->width] && !(spriteX+x >= 0 && spriteX+x < glyphMap->width && spriteY+y >= 0 && spriteY+y < glyphMap->height)) {
+				if(sprite->chars[x+y*sprite->width] && !(spriteX+x >= 0 && spriteX+x < canvasSprite->width && spriteY+y >= 0 && spriteY+y < canvasSprite->height)) {
 					return true;
 				}
 			}

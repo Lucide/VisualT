@@ -1,11 +1,12 @@
-#include "visualt/visualt.h"
 #include <time.h>
 #include <math.h>
+#include "visualt/visualt.h"
+#include "utilities.h"
 
 #define M_PI 3.14159265358979323846264338327
 
 void delay(unsigned int milliseconds) {
-	long pause = milliseconds*(CLOCKS_PER_SEC/1000);
+	unsigned long pause = milliseconds*(CLOCKS_PER_SEC/1000);
 	clock_t now, then;
 	now = then = clock();
 	while((now-then) < pause) {
@@ -14,7 +15,7 @@ void delay(unsigned int milliseconds) {
 }
 
 void refresh(VTObj const canvas) {
-	fputs("\33[0;0H", stdout);
+	rewindCursor();
 	vtPrint(&canvas, false);
 }
 
@@ -41,11 +42,11 @@ void animate(VTObj const canvas, VTObj obj) {
 	}
 }
 
-int main() {
+int main(void) {
 	puts("\033c");
 	VTObj obj, canvas;
 	vtInitializeBlank(&canvas, 1, LTSIZES{{51, 15}});
-	vtInitializeString(&obj, 1, LTSTRS{"☒"});
+	vtInitializeStrings(&obj, 1, LTSTRS{"☒"});
 	vtSetPenGlyph(&obj, vtChar(LTSTR "≈"));
 
 	while(true){

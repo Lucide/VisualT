@@ -1,6 +1,6 @@
-# Data Types
+# Types
 
-These types are designed to make the API parameters consistent and easily recognizable. They come already equipped with `const` qualifiers, so they may not necessarily be the best option for representing data in your program, if you plan on doing more advanced manipulations. The only requirement is that the data structures are compatible, so that casts become essentially equivalent to "const cast" (pay attention to type compatibility, if you care about strict aliasing).
+## Data Types
 
 VisualT's public types are all prefixed with "VT", to avoid potential collision.
 
@@ -9,6 +9,10 @@ VisualT's public types are all prefixed with "VT", to avoid potential collision.
 
 ``` doxygentypedef:: VTChar
 ```
+
+## Input types
+
+The following types are designed to make the API parameters consistent and easily recognizable. They come already equipped with `const` qualifiers, so they may not necessarily be the best option for representing data in your program, if you plan on doing more advanced manipulations. The only requirement is that the data structures are compatible, so that casts become essentially equivalent to "const cast" (pay attention to type compatibility, if you care about strict aliasing).
 
 ``` doxygentypedef:: VTStr
 ```
