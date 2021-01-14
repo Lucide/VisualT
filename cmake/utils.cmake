@@ -10,7 +10,7 @@ macro(set_if variable)
     endif()
 endmacro()
 
-function(rebase_dirs output_name base_dir #[[FILES]])
+function(rebase_files output_var base_dir #[[FILES]])
     set(multiValues FILES)
     cmake_parse_arguments(PARSE_ARGV 2
                           "ARG"
@@ -18,28 +18,57 @@ function(rebase_dirs output_name base_dir #[[FILES]])
                           ""
                           "${multiValues}")
     foreach(file IN LISTS ARG_FILES)
-        list(APPEND ${output_name} "${base_dir}/${file}")
+        list(APPEND ${output_var} "${base_dir}/${file}")
     endforeach()
-    set(${output_name} ${${output_name}} PARENT_SCOPE)
+    set(${output_var} ${${output_var}} PARENT_SCOPE)
 endfunction()
 
-function(link_and_copy target)
-    target_link_libraries(${target}
-                          PRIVATE VisualT::library)
-    if(MSVC)
-        get_target_property(library_type VisualT::library TYPE)
-        if(library_type STREQUAL "SHARED_LIBRARY")
-            add_custom_command(TARGET ${target}
-                               POST_BUILD
-                               COMMAND ${CMAKE_COMMAND}
-                               -E copy_if_different "$<TARGET_FILE:VisualT::library>" ${CMAKE_CURRENT_BINARY_DIR}
-                               COMMENT "built dll is needed by ${target}"
-                               VERBATIM)
-            set_property(TARGET ${target}
-                         APPEND
-                         PROPERTY ADDITIONAL_CLEAN_FILES "${CMAKE_CURRENT_BINARY_DIR}/$<TARGET_FILE_NAME:VisualT::library>")
+function(configure_files dest_dir #[[FILES]])
+    set(multiValues FILES)
+    cmake_parse_arguments(PARSE_ARGV 1
+                          "ARG"
+                          ""
+                          ""
+                          "${multiValues}")
+    foreach(file IN LISTS ARG_FILES)
+        if(file MATCHES [[(.+)\.in$]])
+            configure_file(${file}
+                           "${dest_dir}/${CMAKE_MATCH_1}"
+                           @ONLY)
         endif()
+    endforeach()
+endfunction()
+
+function(copy_shared_win target)
+    if(WIN32)
+        foreach(library IN LISTS ARGN)
+            get_target_property(library_type ${library} TYPE)
+            if(library_type STREQUAL "SHARED_LIBRARY")
+                add_custom_command(TARGET ${target}
+                                   POST_BUILD
+                                   COMMAND ${CMAKE_COMMAND}
+                                   -E copy_if_different "$<TARGET_FILE:${library}>" ${CMAKE_CURRENT_BINARY_DIR}
+                                   COMMAND ${CMAKE_COMMAND}
+                                   -E echo "${library} dll copied to \"${target}\"'s binary dir"
+                                   VERBATIM)
+                set_property(TARGET ${target}
+                             APPEND
+                             PROPERTY ADDITIONAL_CLEAN_FILES "${CMAKE_CURRENT_BINARY_DIR}/$<TARGET_FILE_NAME:${library}>")
+            endif()
+        endforeach()
     endif()
+endfunction()
+
+function(uses_assets target)
+    add_custom_command(TARGET ${target}
+                       POST_BUILD
+                       COMMAND ${CMAKE_COMMAND}
+                       -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/assets" "${CMAKE_CURRENT_BINARY_DIR}/assets"
+                       COMMENT "assets are needed by ${target}"
+                       VERBATIM)
+    set_property(TARGET ${target}
+                 APPEND
+                 PROPERTY ADDITIONAL_CLEAN_FILES "${CMAKE_CURRENT_BINARY_DIR}/assets")
 endfunction()
 
 function(install_symbolic #[[EXPORT]] #[[COMPONENT]] #[[DESTINATION]] #[[EXCLUDE_FROM_ALL]])

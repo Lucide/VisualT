@@ -47,7 +47,7 @@ int main(void) {
 	VTObj obj, canvas;
 	vtInitializeBlank(&canvas, 1, LTSIZES{{51, 15}});
 	vtInitializeStrings(&obj, 1, LTSTRS{"☒"});
-	vtSetPenGlyph(&obj, vtChar(LTSTR "≈"));
+	vtSetPenGlyph(&obj, vtChar("≈"));
 
 	while(true){
 		animate(canvas, obj);

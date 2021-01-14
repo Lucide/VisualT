@@ -1,4 +1,4 @@
-#include "visualt/visualt.h"
+#include "visualt-internals.h"
 #include "version.h"
 #include "buildDate.h"
 
@@ -7,77 +7,31 @@
 #include <inttypes.h>
 #include <assert.h>
 
-typedef struct VTGlyphMap {
-	VTChar *restrict chars;
-	int width, height;
-} GlyphMap;
-
-typedef VTObj Obj;
-
-typedef struct BoolMap {
-	bool *restrict chars;
-	int width, height;
-} BoolMap;
-
 //----INTERNALS----
 #define lputs(STRING) fputs((STRING), stdout)
 
 #define puts32(VTCHAR, LENGTH) fwrite((VTCHAR), sizeof(VTChar), (LENGTH), stdout)
 
-#define putchar32(VTCHAR) putchar((char)((VTCHAR)>>0u&0xffu));   \
-                            putchar((char)((VTCHAR)>>8u&0xffu));   \
-                            putchar((char)((VTCHAR)>>16u&0xffu));  \
-                            putchar((char)((VTCHAR)>>24u&0xffu))
+#define putchar32(VTCHAR) putchar((char)((VTCHAR)>>0u&0xFFu));   \
+                            putchar((char)((VTCHAR)>>8u&0xFFu));   \
+                            putchar((char)((VTCHAR)>>16u&0xFFu));  \
+                            putchar((char)((VTCHAR)>>24u&0xFFu))
 
-#define endiannessSwap32(VTCHAR) ((((VTCHAR)>>24u)&0xffu)|((VTCHAR)>>8u&0xff00u)|((VTCHAR)<<8u&0xff0000u)|((VTCHAR)<<24u&0xff000000u))
-
-#define initializeObj(OBJ)  (OBJ)->x = 0;           \
-                              (OBJ)->y = 0;           \
-                              (OBJ)->visible = true;  \
-                              (OBJ)->penSize = 0;     \
-                              (OBJ)->penChar = '#';   \
-                              (OBJ)->activeSprite = (OBJ)->sprites
-
-#define sizeofGlyphs(GLYPHMAP) ((size_t)(GLYPHMAP)->width*(size_t)(GLYPHMAP)->height*sizeof(VTChar))
-
-#define sizeofBools(BOOLMAP) ((size_t)(BOOLMAP)->width*(size_t)(BOOLMAP)->height*sizeof(bool))
-
-#define clearMap(TYPE, MAP) memset((MAP)->chars, 0, sizeof##TYPE((MAP)))
-
-#define initializeMap(TYPE, MAP, WIDTH, HEIGHT) (MAP)->width = (int)(WIDTH);   \
-                                                    (MAP)->height = (int)(HEIGHT); \
-                                                    (MAP)->chars = malloc(sizeof##TYPE(MAP))
-
-#define freeMap(MAP) free((MAP)->chars)
+#ifdef VISUALT_IS_BIG_ENDIAN
+	#define endiannessSwap32(VTCHAR) ((((VTCHAR)>>24u)&0xFFu)|((VTCHAR)>>8u&0xFF00u)|((VTCHAR)<<8u&0xFF0000u)|((VTCHAR)<<24u&0xFF000000u))
+#else
+	#define endiannessSwap32(VTCHAR) VTCHAR
+#endif
 
 #define normalizePosition(GLYPHMAP, SPRITE, SPRITEX, SPRITEY, X, Y)  (X) = (GLYPHMAP)->width/2-(SPRITE)->width/2+(SPRITEX);  \
                                                                       (Y) = (GLYPHMAP)->height/2-(SPRITE)->height/2-(SPRITEY)
-
-static inline VTChar humanizeSwapChar(VTChar implChar) {
-	#ifndef VISUALT_IS_BIG_ENDIAN
-	implChar = endiannessSwap32(implChar);
-	#endif
-	if(implChar&0xffu) {
-		return implChar;
-	}
-	implChar >>= 8u;
-	if(implChar&0xffu) {
-		return implChar;
-	}
-	implChar >>= 8u;
-	if(implChar&0xffu) {
-		return implChar;
-	}
-	implChar >>= 8u;
-	return implChar;
-}
 
 static void initializeGlyphMapString(GlyphMap *const sprite, uint8_t const *const utf8Text) {
 	int spriteWidth = 1, spriteHeight = 1;
 
 	//calculate dimensions
 	for(int width = 0, i = 0; utf8Text[i] != '\0'; i++) {
-		if((utf8Text[i]&0xc0u) != 0x80) { // partial code point: 10xx xxxx
+		if((utf8Text[i]&0xC0u) != 0x80) { // partial code point: 10xx xxxx
 			if(utf8Text[i] == '\n') {
 				spriteHeight++;
 				width = 0;
@@ -98,25 +52,25 @@ static void initializeGlyphMapString(GlyphMap *const sprite, uint8_t const *cons
 				i++;
 				break;
 			}
-			if(utf8Text[i] == '\v') {  //1B empty
+			if(utf8Text[i] == '\v') { //1B empty
 				i++;
 				continue;
 			}
 			uint8_t *const bytes = (uint8_t *)&sprite->chars[x+y*spriteWidth];
-			if(utf8Text[i] >= 0xf0) {         //4B code point: 1111 0xxx
+			if(utf8Text[i] <= 0x7F) {         //1B code point: 0xxx xxxx
+				bytes[0] = utf8Text[i++];
+			} else if(utf8Text[i] <= 0xDF) {  //2B code point: 110x xxxx
+				bytes[0] = utf8Text[i++];
+				bytes[1] = utf8Text[i++];
+			} else if(utf8Text[i] <= 0xEF) {  //3B code point: 1110 xxxx
+				bytes[0] = utf8Text[i++];
+				bytes[1] = utf8Text[i++];
+				bytes[2] = utf8Text[i++];
+			} else {                          //4B code point: 1111 0xxx
 				bytes[0] = utf8Text[i++];
 				bytes[1] = utf8Text[i++];
 				bytes[2] = utf8Text[i++];
 				bytes[3] = utf8Text[i++];
-			} else if(utf8Text[i] >= 0xe0) {  //3B code point: 1110 xxxx
-				bytes[0] = utf8Text[i++];
-				bytes[1] = utf8Text[i++];
-				bytes[2] = utf8Text[i++];
-			} else if(utf8Text[i] >= 0xc2) {  //2B code point: 110x xxxx
-				bytes[0] = utf8Text[i++];
-				bytes[1] = utf8Text[i++];
-			} else {                          //1B code point: 0xxx xxxx
-				bytes[0] = utf8Text[i++];
 			}
 		}
 	}
@@ -128,15 +82,15 @@ static void printGlyphMap(GlyphMap const *const sprite, bool const border) {
 
 	if(border) {
 		int i = 0;
-		buffer[i++] = 0xe2;  //┌
+		buffer[i++] = 0xE2;  //┌
 		buffer[i++] = 0x94;  //┌
-		buffer[i++] = 0x8c;  //┌
+		buffer[i++] = 0x8C;  //┌
 		while(i/3 <= width) {
-			buffer[i++] = 0xe2;  //─
+			buffer[i++] = 0xE2;  //─
 			buffer[i++] = 0x94;  //─
 			buffer[i++] = 0x80;  //─
 		}
-		buffer[i++] = 0xe2;    //┐
+		buffer[i++] = 0xE2;    //┐
 		buffer[i++] = 0x94;    //┐
 		buffer[i++] = 0x90;    //┐
 		buffer[i] = '\0';
@@ -145,32 +99,32 @@ static void printGlyphMap(GlyphMap const *const sprite, bool const border) {
 	for(int y = 0; y < height; y++) {
 		int i = 0;
 		if(border) {
-			buffer[i++] = 0xe2;  //│
+			buffer[i++] = 0xE2;  //│
 			buffer[i++] = 0x94;  //│
 			buffer[i++] = 0x82;  //│
 		}
 		for(int x = 0; x < width; x++) {
 			uint8_t const *const bytes = (uint8_t *)&sprite->chars[x+y*width];
-			if(bytes[0] >= 0xf0) {        //4B code point: 1111 0xxx
+			if(bytes[0] == 0) {            //1B empty
+				buffer[i++] = ' ';
+			} else if(bytes[0] <= 0x7F) {  //1B code point: 0xxx xxxx
+				buffer[i++] = bytes[0];
+			} else if(bytes[0] <= 0xDF) {  //2B code point: 110x xxxx
+				buffer[i++] = bytes[0];
+				buffer[i++] = bytes[1];
+			} else if(bytes[0] <= 0xEF) {  //3B code point: 1110 xxxx
+				buffer[i++] = bytes[0];
+				buffer[i++] = bytes[1];
+				buffer[i++] = bytes[2];
+			} else {                       //4B code point: 1111 0xxx
 				buffer[i++] = bytes[0];
 				buffer[i++] = bytes[1];
 				buffer[i++] = bytes[2];
 				buffer[i++] = bytes[3];
-			} else if(bytes[0] >= 0xe0) {  //3B code point: 1110 xxxx
-				buffer[i++] = bytes[0];
-				buffer[i++] = bytes[1];
-				buffer[i++] = bytes[2];
-			} else if(bytes[0] >= 0xc2) {  //2B code point: 110x xxxx
-				buffer[i++] = bytes[0];
-				buffer[i++] = bytes[1];
-			} else if(bytes[0]) {          //1B code point: 0xxx xxxx
-				buffer[i++] = bytes[0];
-			} else {                      //1B empty
-				buffer[i++] = ' ';
 			}
 		}
 		if(border) {
-			buffer[i++] = 0xe2;  //│
+			buffer[i++] = 0xE2;  //│
 			buffer[i++] = 0x94;  //│
 			buffer[i++] = 0x82;  //│
 		}
@@ -179,15 +133,15 @@ static void printGlyphMap(GlyphMap const *const sprite, bool const border) {
 	}
 	if(border) {
 		int i = 0;
-		buffer[i++] = 0xe2;  //└
+		buffer[i++] = 0xE2;  //└
 		buffer[i++] = 0x94;  //└
 		buffer[i++] = 0x94;  //└
 		while(i/3 <= width) {
-			buffer[i++] = 0xe2;  //─
+			buffer[i++] = 0xE2;  //─
 			buffer[i++] = 0x94;  //─
 			buffer[i++] = 0x80;  //─
 		}
-		buffer[i++] = 0xe2;  //┘
+		buffer[i++] = 0xE2;  //┘
 		buffer[i++] = 0x94;  //┘
 		buffer[i++] = 0x98;  //┘
 		buffer[i] = '\0';
@@ -203,11 +157,11 @@ static size_t stringifiedGlyphMapSize(GlyphMap const *const sprite, bool const b
 	for(int y = 0; y < height; length++, y++) {
 		for(int x = 0; x < width; x++) {
 			uint8_t const *const bytes = (uint8_t *)&sprite->chars[x+y*width];
-			if(bytes[0] >= 0xf0) {        //4B code point: 1111 0xxx
+			if(bytes[0] >= 0xF0) {        //4B code point: 1111 0xxx
 				length += 4;
-			} else if(bytes[0] >= 0xe0) { //3B code point: 1110 xxxx
+			} else if(bytes[0] >= 0xE0) { //3B code point: 1110 xxxx
 				length += 3;
-			} else if(bytes[0] >= 0xc2) { //2B code point: 110x xxxx
+			} else if(bytes[0] >= 0xC2) { //2B code point: 110x xxxx
 				length += 2;
 			} else {                      //1B code point: 0xxx xxxx
 				length += 1;
@@ -232,64 +186,62 @@ static size_t stringifyGlyphMap(GlyphMap const *const sprite, bool const border,
 	int i = 0;
 
 	if(border) {
-		string[i++] = 0xe2;  //┌
+		string[i++] = 0xE2;  //┌
 		string[i++] = 0x94;  //┌
-		string[i++] = 0x8c;  //┌
+		string[i++] = 0x8C;  //┌
 		for(int j = 0; j < width; j++) {
-			string[i++] = 0xe2;  //─
+			string[i++] = 0xE2;  //─
 			string[i++] = 0x94;  //─
 			string[i++] = 0x80;  //─
 		}
-		string[i++] = 0xe2;  //┐
+		string[i++] = 0xE2;  //┐
 		string[i++] = 0x94;  //┐
 		string[i++] = 0x90;  //┐
 		string[i++] = '\n';
 	}
 	for(int y = 0; y < height; y++) {
 		if(border) {
-			string[i++] = 0xe2;  //│
+			string[i++] = 0xE2;  //│
 			string[i++] = 0x94;  //│
 			string[i++] = 0x82;  //│
 		}
 		for(int x = 0; x < width; x++) {
 			uint8_t const *const bytes = (uint8_t *)&chars[x+y*width];
-			if(bytes[0] >= 0xf0) {        //4B code point: 1111 0xxx
+			if(bytes[0] == 0) {            //1B empty
+				string[i++] = ' ';
+			} else if(bytes[0] <= 0x7F) {  //1B code point: 0xxx xxxx
+				string[i++] = bytes[0];
+			} else if(bytes[0] <= 0xDF) {  //2B code point: 110x xxxx
+				string[i++] = bytes[0];
+				string[i++] = bytes[1];
+			} else if(bytes[0] <= 0xEF) {  //3B code point: 1110 xxxx
+				string[i++] = bytes[0];
+				string[i++] = bytes[1];
+				string[i++] = bytes[2];
+			} else {                       //4B code point: 1111 0xxx
 				string[i++] = bytes[0];
 				string[i++] = bytes[1];
 				string[i++] = bytes[2];
 				string[i++] = bytes[3];
-			} else if(bytes[0] >= 0xe0) {  //3B code point: 1110 xxxx
-				string[i++] = bytes[0];
-				string[i++] = bytes[1];
-				string[i++] = bytes[2];
-			} else if(bytes[0] >= 0xc2) {  //2B code point: 110x xxxx
-				string[i++] = bytes[0];
-				string[i++] = bytes[1];
-			} else {
-				if(bytes[0]) {
-					string[i++] = bytes[0];    //1B code point: 0xxx xxxx
-				} else {
-					string[i++] = ' ';         //1B empty
-				}
 			}
 		}
 		if(border) {
-			string[i++] = 0xe2;  //│
+			string[i++] = 0xE2;  //│
 			string[i++] = 0x94;  //│
 			string[i++] = 0x82;  //│
 		}
 		string[i++] = '\n';
 	}
 	if(border) {
-		string[i++] = 0xe2;  //└
+		string[i++] = 0xE2;  //└
 		string[i++] = 0x94;  //└
 		string[i++] = 0x94;  //└
 		for(int j = 0; j < width; j++) {
-			string[i++] = 0xe2;  //─
+			string[i++] = 0xE2;  //─
 			string[i++] = 0x94;  //─
 			string[i++] = 0x80;  //─
 		}
-		string[i++] = 0xe2;  //┘
+		string[i++] = 0xE2;  //┘
 		string[i++] = 0x94;  //┘
 		string[i++] = 0x98;  //┘
 		i++; //\n
@@ -419,20 +371,22 @@ VTChar vtChar(char const *const ltChar) {
 	VTStr const utf8Text = (VTStr)ltChar;
 	VTChar vtChar = 0;
 	uint8_t *const bytes = (uint8_t *)&vtChar;
-	if(utf8Text[0] >= 0xf0) {        //4B code point: 1111 0xxx
+	if(utf8Text[0] == '\v') {         //1B empty
+		//catch early
+	} else if(utf8Text[0] <= 0x7F) {  //1B code point: 0xxx xxxx
+		bytes[0] = utf8Text[0];
+	} else if(utf8Text[0] <= 0xDF) {  //2B code point: 110x xxxx
+		bytes[0] = utf8Text[0];
+		bytes[1] = utf8Text[1];
+	} else if(utf8Text[0] <= 0xEF) {  //3B code point: 1110 xxxx
+		bytes[0] = utf8Text[0];
+		bytes[1] = utf8Text[1];
+		bytes[2] = utf8Text[2];
+	} else {                          //4B code point: 1111 0xxx
 		bytes[0] = utf8Text[0];
 		bytes[1] = utf8Text[1];
 		bytes[2] = utf8Text[2];
 		bytes[3] = utf8Text[3];
-	} else if(utf8Text[0] >= 0xe0) {  //3B code point: 1110 xxxx
-		bytes[0] = utf8Text[0];
-		bytes[1] = utf8Text[1];
-		bytes[2] = utf8Text[2];
-	} else if(utf8Text[0] >= 0xc2) {  //2B code point: 110x xxxx
-		bytes[0] = utf8Text[0];
-		bytes[1] = utf8Text[1];
-	} else if(utf8Text[0] != '\v') {  //1B code point: 0xxx xxxx
-		bytes[0] = utf8Text[0];
 	}
 	return vtChar;
 }
@@ -466,32 +420,62 @@ void vtInitializeArray(Obj *const obj, VTChar const *const v) {
 		j += 2;
 		for(int y = 0; y < sprite->height; y++) {
 			for(int x = 0; x < sprite->width; x++, j++) {
-				sprite->chars[x+y*sprite->width] = humanizeSwapChar(v[j]);
+				sprite->chars[x+y*sprite->width] = codeToVTChar(endiannessSwap32(v[j]));
 			}
 		}
 	}
 	initializeObj(obj);
 }
 
-void vtInitializeFile(Obj *const obj, FILE *const file) {
+int vtInitializeFile(Obj *const obj, FILE *const file) {
 	assert(obj);
 	assert(file);
 	int vLength = 0;
+	int error = false;
 
-	while(fscanf(file, "%*" SCNu32) != EOF) { // NOLINT(cert-err34-c)
-		vLength++;
+	{
+		int c, pc = ' ';
+		while((c = getc(file)) != EOF) {
+			if((pc == ' ' || pc == '\n') && c != ' ' && c != '\n') {
+				vLength++;
+			}
+			pc = c;
+		}
+	}
+	if(ferror(file) != 0) {
+		perror("serialized Object file parsing failed");
+		flagErrorAndGoto(closeFile);
 	}
 	VTChar *const v = malloc((size_t)vLength*sizeof(VTChar));
 	rewind(file);
-	for(int i = 0; i < vLength; i++) {
-		if(!fscanf(file, "%" SCNu32, &v[i])) { // NOLINT(cert-err34-c)
+	if(fscanf(file, "%u", &v[0]) < 1) { // NOLINT(cert-err34-c)
+		flagErrorAndGoto(freeArray);
+	}
+	for(int i = 1; i < vLength;) {
+		if(fscanf(file, "%u", &v[i++]) < 1 || fscanf(file, "%u", &v[i++]) < 1) { // NOLINT(cert-err34-c)
 			perror("serialized Object file parsing failed");
-			return;
+			flagErrorAndGoto(freeArray);
+		}
+		for(int const k = i; i-k < (int)(v[k-1]*v[k-2]); i++) {
+			if(fscanf(file, "%"SCNx32, &v[i]) < 1) { // NOLINT(cert-err34-c)
+				perror("serialized Object file parsing failed");
+				flagErrorAndGoto(freeArray);
+			}
 		}
 	}
-	fclose(file);
 	vtInitializeArray(obj, v);
+	freeArray:
 	free(v);
+	closeFile:
+	if(fclose(file) == EOF) {
+		perror("serialized Object file closing failed");
+		flagErrorAndGoto(error);
+	}
+	error:
+	if(error) {
+		return -1;
+	}
+	return 0;
 }
 
 void vtInitializeStrings(Obj *obj, unsigned int utf8StringsLength, VTStrs utf8Strings) {
@@ -641,6 +625,7 @@ int vtExtremum(Obj const *const obj, VTDirection const direction) {
 	int const width = obj->activeSprite->width, height = obj->activeSprite->height;
 	switch(direction) {
 		default:
+			return 0;
 		case VT_LEFT:
 			return -width/2;
 		case VT_RIGHT:
@@ -672,22 +657,22 @@ void vtSetText(Obj *const obj, bool fitToContent, VTStr const utf8String) {
 			}
 			VTChar t = 0;
 			uint8_t *const bytes = (uint8_t *)&t;
-			if(utf8String[i] == '\v') {         //1B empty
+			if(utf8String[0] == '\v') {         //1B empty
 				i++;
-			} else if(utf8String[i] >= 0xf0) {  //4B code point: 1111 0xxx
+			} else if(utf8String[0] <= 0x7F) {  //1B code point: 0xxx xxxx
+				bytes[0] = utf8String[i++];
+			} else if(utf8String[0] <= 0xDF) {  //2B code point: 110x xxxx
+				bytes[0] = utf8String[i++];
+				bytes[1] = utf8String[i++];
+			} else if(utf8String[0] <= 0xEF) {  //3B code point: 1110 xxxx
+				bytes[0] = utf8String[i++];
+				bytes[1] = utf8String[i++];
+				bytes[2] = utf8String[i++];
+			} else {                            //4B code point: 1111 0xxx
 				bytes[0] = utf8String[i++];
 				bytes[1] = utf8String[i++];
 				bytes[2] = utf8String[i++];
 				bytes[3] = utf8String[i++];
-			} else if(utf8String[i] >= 0xe0) {  //3B code point: 1110 xxxx
-				bytes[0] = utf8String[i++];
-				bytes[1] = utf8String[i++];
-				bytes[2] = utf8String[i++];
-			} else if(utf8String[i] >= 0xc2) {  //2B code point: 110x xxxx
-				bytes[0] = utf8String[i++];
-				bytes[1] = utf8String[i++];
-			} else {                            //1B code point: 0xxx xxxx
-				bytes[0] = utf8String[i++];
 			}
 			if(x < sprite->width && y < sprite->height) {
 				sprite->chars[x+y*sprite->width] = t;
@@ -936,21 +921,22 @@ void vtSerialize(Obj const *const obj, VTChar *const v) {
 			v[j++] = (VTChar)sprite->height;
 			for(int y = 0; y < sprite->height; y++) {
 				for(int x = 0; x < sprite->width; x++, j++) {
-					v[j] = humanizeSwapChar(sprite->chars[x+y*sprite->width]);
+					v[j] = endiannessSwap32(VTCharToCode(sprite->chars[x+y*sprite->width]));
 				}
 			}
 		}
 	} else {
-		printf("%"PRIu32" ", obj->length);
+		printf("%u ", obj->length);
 		for(unsigned int i = 0; i < obj->length; i++) {
 			GlyphMap *const sprite = &obj->sprites[i];
-			printf("%"PRIu32" %"PRIu32" ", sprite->width, sprite->height);
+			printf("%u %u ", sprite->width, sprite->height);
 			for(int y = 0; y < sprite->height; y++) {
 				for(int x = 0; x < sprite->width; x++) {
-					printf("%"PRIu32" ", humanizeSwapChar(sprite->chars[x+y*sprite->width]));
+					printf("%#"PRIX32" ", endiannessSwap32(VTCharToCode(sprite->chars[x+y*sprite->width])));
 				}
 			}
 		}
+		putchar('\n');
 	}
 }
 
@@ -1043,28 +1029,20 @@ void vtChangeY(Obj const *const canvas, Obj *const obj, int const y) {
 	obj->y += y;
 }
 
-void vtAlign(Obj *const obj, VTAlign const position) {
+void vtAlign(Obj *const obj, VTDirection const direction) {
 	assert(obj);
 	int const centerX = obj->activeSprite->width/2, centerY = obj->activeSprite->height/2;
-	switch(position) {
-		default:
-			return;
-		case VT_TOP_LEFT:
-			obj->x += centerX;
-			obj->y -= centerY;
-			break;
-		case VT_TOP_RIGHT:
-			obj->x -= obj->activeSprite->width-centerX-1;
-			obj->y -= centerY;
-			break;
-		case VT_BOTTOM_LEFT:
-			obj->x += centerX;
-			obj->y += obj->activeSprite->height-centerY-1;
-			break;
-		case VT_BOTTOM_RIGHT:
-			obj->x -= obj->activeSprite->width-centerX-1;
-			obj->y += obj->activeSprite->height-centerY-1;
-			break;
+	if(direction&VT_TOP) {
+		obj->y -= centerY;
+	}
+	if(direction&VT_BOTTOM) {
+		obj->y += obj->activeSprite->height-centerY-1;
+	}
+	if(direction&VT_LEFT) {
+		obj->x += centerX;
+	}
+	if(direction&VT_RIGHT) {
+		obj->x -= obj->activeSprite->width-centerX-1;
 	}
 }
 

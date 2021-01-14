@@ -25,6 +25,6 @@ include(context-specific)
 # Subdirectories
 #=============================
 add_subdirectory(utilities)
-add_subdirectory(01)
-add_subdirectory(02)
-add_subdirectory(pen-demo)
+add_subdirectory(demo)
+add_subdirectory(car)
+add_subdirectory(waves)

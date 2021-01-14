@@ -78,15 +78,8 @@ typedef VTObj const *const *VTObjs;
  * This enumerator is meant to be used with @func{vtOffset}.
  */
 typedef enum VTDirection {
-	VT_LEFT, VT_RIGHT, VT_TOP, VT_BOTTOM
+	VT_LEFT = 1, VT_RIGHT = 2, VT_TOP = 4, VT_BOTTOM = 8
 } VTDirection;
-
-/**
- * This enumerator is meant to be used with @func{vtAlign}.
- */
-typedef enum VTAlign {
-	VT_TOP_LEFT, VT_TOP_RIGHT, VT_BOTTOM_LEFT, VT_BOTTOM_RIGHT
-} VTAlign;
 
 /**
  * A helper macro to cast a @b literal string to @type{VTStr}.
@@ -126,11 +119,11 @@ typedef enum VTAlign {
  */
 void vtAbout();
 
- /**
-  * A helper function to convert a @b{single-glyph} literal string to a @type{VTChar}.
-  * @param ltChar a UTF8-encoded string containing a single glyph
-  * @return The first glyph encoded in a @type{VTChar}, so that VisualT can process it.
-  */
+/**
+ * A helper function to convert a @b{single-glyph} literal string to a @type{VTChar}.
+ * @param ltChar a UTF8-encoded string containing a single glyph
+ * @return The first glyph encoded in a @type{VTChar}, so that VisualT can process it.
+ */
 VTChar vtChar(char const *ltChar);
 
 /**
@@ -173,7 +166,7 @@ void vtInitializeArray(VTObj *obj, VTChar const *v);
  * @param obj a pointer the Object to initialize
  * @param file a pointer to a serialized Object file
  */
-void vtInitializeFile(VTObj *obj, FILE *file);
+int vtInitializeFile(VTObj *obj, FILE *file);
 
 /**
  * Initializes @c *obj from the array of strings @c utf8Strings of length @c utf8StringsLength.
@@ -584,9 +577,9 @@ void vtChangeY(VTObj const *canvas, VTObj *obj, int y);
 /**
  * Modifies @c{*obj}'s coordinates so that the specified @c position matches with the Object position.
  * @param obj a pointer to the affected Object
- * @param position how to align the Object, see @enum{VTAlign}
+ * @param direction how to align the Object, see @enum{VTAlign}
  */
-void vtAlign(VTObj *obj, VTAlign position);
+void vtAlign(VTObj *obj, VTDirection direction);
 
 
 /**

@@ -1,6 +1,7 @@
 set(visualt_install_path "@install_base_path@")
 
 find_package(VisualT
+             CONFIG
              REQUIRED
              COMPONENTS VisualT_development
              PATHS ${visualt_install_path})

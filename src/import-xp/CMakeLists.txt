@@ -1,0 +1,89 @@
+include(GenerateExportHeader)
+include(utils)
+
+#=============================
+# Dependencies
+#=============================
+find_package(ZLIB REQUIRED)
+
+#=============================
+# Configuration
+#=============================
+set(sources
+    "importXp.c"
+    "loadXp.c"
+    "translateXp.c")
+
+list(POP_BACK private_headers_dirs)
+list(GET private_headers_dirs 0 dir)
+rebase_files(private_headers
+             ${dir}
+             FILES
+             "visualt-internals.h")
+
+list(GET public_headers_dirs 0 dir)
+rebase_files(public_headers
+             ${dir}
+             FILES
+             "visualt/visualt.h"
+             "visualt/import-xp.h")
+list(APPEND public_headers_dirs ${CMAKE_CURRENT_BINARY_DIR})
+list(GET public_headers_dirs 1 dir)
+rebase_files(public_headers
+             ${dir}
+             FILES
+             "import_xp_export.h")
+
+
+#=============================
+# Targets
+#=============================
+add_library(VisualT_import_xp
+            EXCLUDE_FROM_ALL
+            ${private_headers}
+            ${public_headers}
+            ${sources})
+add_library(VisualT::import_xp ALIAS VisualT_import_xp)
+set_target_properties(VisualT_import_xp PROPERTIES
+                      VERSION ${PROJECT_VERSION}
+                      SOVERSION ${PROJECT_VERSION_MAJOR}
+                      C_VISIBILITY_PRESET hidden
+                      VISIBILITY_INLINES_HIDDEN YES)
+generate_export_header(VisualT_import_xp
+                       BASE_NAME import_xp
+                       PREFIX_NAME VISUALT_)
+
+#=============================
+# Targets Configuration
+#=============================
+# enable fileno()
+if(UNIX)
+    target_compile_definitions(VisualT_import_xp
+                               PRIVATE _POSIX_C_SOURCE=1)
+endif()
+target_link_libraries(VisualT_import_xp PRIVATE
+                      ZLIB::ZLIB)
+# disable linker warnings about missing zlib .pdb files on windows
+target_link_options(VisualT_import_xp
+                    PRIVATE  "$<$<C_COMPILER_ID:MSVC>:LINKER:/ignore:4099>")
+set_target_properties(VisualT_import_xp PROPERTIES
+                      OUTPUT_NAME importXp
+                      EXPORT_NAME import_xp
+                      PUBLIC_HEADER "${public_headers}")
+target_include_directories(VisualT_import_xp
+                           PRIVATE ${private_headers_dirs}
+                           PUBLIC "$<BUILD_INTERFACE:${public_headers_dirs}>")
+
+#=============================
+# Installation
+#=============================
+install(TARGETS VisualT_import_xp
+        EXPORT VisualT_import_xp
+        COMPONENT VisualT_import_xp
+        PUBLIC_HEADER
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/visualt"
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(EXPORT VisualT_import_xp
+        COMPONENT VisualT_import_xp
+        DESTINATION ${VisualT_export_dir}
+        NAMESPACE "${PROJECT_NAME}::")

@@ -9,6 +9,8 @@ if(${CMAKE_FIND_PACKAGE_NAME}_FIND_COMPONENTS)
     set(${CMAKE_FIND_PACKAGE_NAME}_comps ${${CMAKE_FIND_PACKAGE_NAME}_FIND_COMPONENTS})
     _component_requires(VisualT_examples
                         VisualT_development)
+    _component_requires(VisualT_import_xp
+                        VisualT_runtime)
     _component_requires(VisualT_development
                         VisualT_runtime)
 else()
@@ -21,7 +23,7 @@ foreach(comp IN LISTS ${CMAKE_FIND_PACKAGE_NAME}_comps)
     if(${CMAKE_FIND_PACKAGE_NAME}_FIND_REQUIRED_${comp}
        AND NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/${comp}.cmake")
         set(${CMAKE_FIND_PACKAGE_NAME}_NOT_FOUND_MESSAGE
-            "VisualT: The \"${comp}\" component was required but hasn't been installed")
+            "VisualT: The \"${comp}\" component is required but hasn't been installed")
         set(${CMAKE_FIND_PACKAGE_NAME}_FOUND FALSE)
         return()
     endif()

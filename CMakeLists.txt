@@ -2,6 +2,37 @@
 # Preamble
 #=============================
 cmake_minimum_required(VERSION 3.17)
+
+set(HUNTER_STATUS_DEBUG YES CACHE BOOL "")
+#=============================
+# Hunter-related setup
+#=============================
+set(HUNTER_ROOT "${CMAKE_CURRENT_BINARY_DIR}/hunter" CACHE PATH "Path to Hunter root directory.")
+set(HUNTER_BUILD_SHARED_LIBS NO)
+option(VisualT_BUILD_SHARED_LIBS "Build VisualT libraries as shared libraries. A more specific alternative to BUILD_SHARED_LIBS." NO)
+if(VisualT_BUILD_SHARED_LIBS)
+    set(BUILD_SHARED_LIBS YES)
+endif()
+option(VisualT_XP_IMPORTER "Build the .xp importer library." YES)
+if(VisualT_XP_IMPORTER)
+    list(APPEND HUNTER_PACKAGES "ZLIB")
+    if(BUILD_SHARED_LIBS)
+        list(APPEND HUNTER_ZLIB_CMAKE_ARGS
+             "CMAKE_POSITION_INDEPENDENT_CODE:BOOL=YES")
+    endif()
+list(APPEND HUNTER_ZLIB_CMAKE_ARGS
+     "CMAKE_POLICY_DEFAULT_CMP0063:STRING=NEW"
+     "CMAKE_C_VISIBILITY_PRESET:BOOL=hidden"
+     "CMAKE_VISIBILITY_INLINES_HIDDEN:BOOL=YES")
+endif()
+
+include(FetchContent)
+fetchcontent_declare(SetupHunter GIT_REPOSITORY https://github.com/cpp-pm/gate)
+fetchcontent_makeavailable(SetupHunter)
+
+#=============================
+# Project wide setup
+#=============================
 project(VisualT
         VERSION 2.0.0
         DESCRIPTION "a text-based graphic library"
@@ -12,24 +43,8 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 #enable_testing()
 
-#=============================
-# Top level project only
-#=============================
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-    set(CMAKE_INSTALL_DOCDIR "${CMAKE_INSTALL_DATAROOTDIR}/doc/${PROJECT_NAME}")
-    message("installation directories:\n"
-            "prefix \"${CMAKE_INSTALL_PREFIX}\"\n"
-            "BINDIR \"${CMAKE_INSTALL_BINDIR}\"\n"
-            "LIBDIR \"${CMAKE_INSTALL_LIBDIR}\"\n"
-            "INCLUDEDIR \"${CMAKE_INSTALL_INCLUDEDIR}\"\n"
-            "DATAROOTDIR \"${CMAKE_INSTALL_DATAROOTDIR}\"\n"
-            "DATADIR \"${CMAKE_INSTALL_DATADIR}\"\n"
-            "DOCDIR \"${CMAKE_INSTALL_DOCDIR}\"\n")
-endif()
-
-#=============================
-# Project wide setup
-#=============================
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+set(CMAKE_INSTALL_DOCDIR "${CMAKE_INSTALL_DATAROOTDIR}/doc/${PROJECT_NAME}")
 set(VisualT_export_dir "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 get_property(isMultiConfig GLOBAL
              PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -52,17 +67,28 @@ set(CMAKE_C_EXTENSIONS NO)
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 #=============================
+# Top level project only
+#=============================
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    message(DEBUG "installation directories:")
+    list(APPEND CMAKE_MESSAGE_INDENT "  ")
+    message(DEBUG "default prefix \"${CMAKE_INSTALL_PREFIX}\"")
+    message(DEBUG "BINDIR \"${CMAKE_INSTALL_BINDIR}\"")
+    message(DEBUG "LIBDIR \"${CMAKE_INSTALL_LIBDIR}\"")
+    message(DEBUG "INCLUDEDIR \"${CMAKE_INSTALL_INCLUDEDIR}\"")
+    message(DEBUG "DATAROOTDIR \"${CMAKE_INSTALL_DATAROOTDIR}\"")
+    message(DEBUG "DATADIR \"${CMAKE_INSTALL_DATADIR}\"")
+    message(DEBUG "DOCDIR \"${CMAKE_INSTALL_DOCDIR}\"")
+    list(POP_BACK CMAKE_MESSAGE_INDENT)
+endif()
+
+#=============================
 # Subdirectories
 #=============================
-add_subdirectory(dependencies)
 add_subdirectory(src)
 add_subdirectory(tests)
-option(VisualT_HIDE_EXAMPLES_TARGETS "Disables the examples targets. Reduces crowding when you import the project directly." NO)
-if(NOT VisualT_HIDE_EXAMPLES_TARGETS)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     add_subdirectory(examples)
-endif()
-option(VisualT_HIDE_DOC_TARGETS "Disables the documentation targets. Reduces crowding when you import the project directly." NO)
-if(NOT VisualT_HIDE_DOC_TARGETS)
     add_subdirectory(doc)
 endif()
 

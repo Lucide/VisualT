@@ -4,7 +4,7 @@
 void help(VTObj *info, int i);
 
 int main(void) {
-	FILE *const catFile=fopen("assets/cat.obj","r");
+	FILE *const catFile = fopen("assets/cat.obj", "r");
 	VTObj canvas, penLayer, info, cat, textBox;
 
 	help(&info, 0);
@@ -30,7 +30,7 @@ int main(void) {
 	vtRender(&canvas, 4, LTOBJS{&penLayer, &info, &cat, &textBox});
 	vtPrint(&canvas, true);
 
-	vtSetText(&textBox, LTSTR "This is an example\n\nhello to everybody"); //change the text contained by textBox
+	vtSetText(&textBox, true, LTSTR "This is an example\n\nhello to everybody"); //change the text contained by textBox
 
 	help(&info, 4);
 	vtRender(&canvas, 4, LTOBJS{&penLayer, &info, &cat, &textBox});
@@ -91,7 +91,7 @@ int main(void) {
 
 	vtHide(&info);
 	vtChangeX(NULL, &textBox, 20);
-	vtSetText(&textBox, LTSTR "                    Thank You!\nstay in touch for more tutorials and demo projects");
+	vtSetText(&textBox, true, LTSTR "                    Thank You!\nstay in touch for more tutorials and demo projects");
 	getch();
 
 	vtRender(&canvas, 4, LTOBJS{&penLayer, &info, &cat, &textBox});
@@ -114,54 +114,54 @@ void help(VTObj *info, const int i) {
 			puts("Press any key to start...");
 			return;
 		case 1:
-			vtSetText(info, LTSTR "initializeBlank(&canvas, 1, LTSIZES{{100, 20}});\n"
-														"initializeObj(&penLayer, &canvas);\n"
-														"vtInitializeFile(&cat, \"res/cat.obj\");\n"
-														"vtDrawAxes(&penLayer);");
+			vtSetText(info, true, LTSTR "initializeBlank(&canvas, 1, LTSIZES{{100, 20}});\n"
+																	"initializeObj(&penLayer, &canvas);\n"
+																	"vtInitializeFile(&cat, \"res/cat.obj\");\n"
+																	"vtDrawAxes(&penLayer);");
 			break;
 		case 2:
-			vtSetText(info, LTSTR "vtGotoXY(NULL, &cat, 35, 0);");
+			vtSetText(info, true, LTSTR "vtGotoXY(NULL, &cat, 35, 0);");
 			break;
 		case 3:
-			vtSetText(info, LTSTR "vtInitializeStrings(&textBox, 1, LTSTRS{\"textBox\"});");
+			vtSetText(info, true, LTSTR "vtInitializeStrings(&textBox, 1, LTSTRS{\"textBox\"});");
 			break;
 		case 4:
-			vtSetText(info, LTSTR "vtSetText(&textBox, LTSTR \"This is an example\\n\\nhello to everybody\");");
+			vtSetText(info, true, LTSTR "vtSetText(&textBox, LTSTR \"This is an example\\n\\nhello to everybody\");");
 			break;
 		case 5:
-			vtSetText(info, LTSTR "vtGotoX(NULL, &textBox, -30);");
+			vtSetText(info, true, LTSTR "vtGotoX(NULL, &textBox, -30);");
 			break;
 		case 6:
-			vtSetText(info, LTSTR "vtSetPenSize(&cat, 5);\n"
-														"vtChangeX(&penLayer, &cat, -40);");
+			vtSetText(info, true, LTSTR "vtSetPenSize(&cat, 5);\n"
+																	"vtChangeX(&penLayer, &cat, -40);");
 			break;
 		case 7:
-			vtSetText(info, LTSTR "vtHide(&cat);");
+			vtSetText(info, true, LTSTR "vtHide(&cat);");
 			break;
 		case 8:
-			vtSetText(info, LTSTR "vtGotoXY(NULL, &cat, vtXPosition(&textBox), vtYPosition(&textBox));\n"
-														"vtShow(&cat);");
+			vtSetText(info, true, LTSTR "vtGotoXY(NULL, &cat, vtXPosition(&textBox), vtYPosition(&textBox));\n"
+																	"vtShow(&cat);");
 			break;
 		case 9:
-			vtSetText(info, LTSTR "vtClear(&penLayer);");
+			vtSetText(info, true, LTSTR "vtClear(&penLayer);");
 			break;
 		case 10:
-			vtSetText(info, LTSTR "for(int i = 0; i < 5; i++) {\n"
-														"  vtStamp(&penLayer, 1, LTOBJS{&cat});\n"
-														"  vtChangeX(NULL, &cat, 10);\n"
-														"}");
+			vtSetText(info, true, LTSTR "for(int i = 0; i < 5; i++) {\n"
+																	"  vtStamp(&penLayer, 1, LTOBJS{&cat});\n"
+																	"  vtChangeX(NULL, &cat, 10);\n"
+																	"}");
 			break;
 		case 11:
-			vtSetText(info, LTSTR "vtChangeX(NULL, &cat, 15);");
+			vtSetText(info, true, LTSTR "vtChangeX(NULL, &cat, 15);");
 			break;
 		case 12:
-			vtSetText(info, LTSTR "vtClear(&penLayer);");
+			vtSetText(info, true, LTSTR "vtClear(&penLayer);");
 			break;
 		case 100:
 			vtRelease(1, LTOBJS{info});
 			return;
 	}
 	vtGotoXY(NULL, info, -50, 10);
-	vtAlign(info, VT_TOP_LEFT);
+	vtAlign(info, VT_TOP|VT_LEFT);
 	getch();
 }

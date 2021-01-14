@@ -1,4 +1,5 @@
 #include "visualt/visualt.h"
+#include "visualt/import-xp.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,25 +47,25 @@ void alignTest(void) {
 	// top left 2x2
 	vtGotoXY(NULL, &viewfinder, -23, 3);
 	vtGotoXY(NULL, &target, -23, 3);
-	vtAlign(&viewfinder, VT_TOP_LEFT);
+	vtAlign(&viewfinder, VT_TOP|VT_LEFT);
 	vtStamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// top right 2x2
 	vtGotoXY(NULL, &viewfinder, -18, 3);
 	vtGotoXY(NULL, &target, -18, 3);
-	vtAlign(&viewfinder, VT_TOP_RIGHT);
+	vtAlign(&viewfinder, VT_TOP|VT_RIGHT);
 	vtStamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// bottom left 2x2
 	vtGotoXY(NULL, &viewfinder, -13, 3);
 	vtGotoXY(NULL, &target, -13, 3);
-	vtAlign(&viewfinder, VT_BOTTOM_LEFT);
+	vtAlign(&viewfinder, VT_BOTTOM|VT_LEFT);
 	vtStamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// bottom right 2x2
 	vtGotoXY(NULL, &viewfinder, -7, 3);
 	vtGotoXY(NULL, &target, -7, 3);
-	vtAlign(&viewfinder, VT_BOTTOM_RIGHT);
+	vtAlign(&viewfinder, VT_BOTTOM|VT_RIGHT);
 	vtStamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	vtSetText(&viewfinder, true, LTSTR "███\n███");
@@ -72,25 +73,25 @@ void alignTest(void) {
 	// top left 3x2
 	vtGotoXY(NULL, &viewfinder, -2, 3);
 	vtGotoXY(NULL, &target, -2, 3);
-	vtAlign(&viewfinder, VT_TOP_LEFT);
+	vtAlign(&viewfinder, VT_TOP|VT_LEFT);
 	vtStamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// top right 3x2
 	vtGotoXY(NULL, &viewfinder, 4, 3);
 	vtGotoXY(NULL, &target, 4, 3);
-	vtAlign(&viewfinder, VT_TOP_RIGHT);
+	vtAlign(&viewfinder, VT_TOP|VT_RIGHT);
 	vtStamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// bottom left 3x2
 	vtGotoXY(NULL, &viewfinder, 10, 3);
 	vtGotoXY(NULL, &target, 10, 3);
-	vtAlign(&viewfinder, VT_BOTTOM_LEFT);
+	vtAlign(&viewfinder, VT_BOTTOM|VT_LEFT);
 	vtStamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// bottom right 3x2
 	vtGotoXY(NULL, &viewfinder, 16, 3);
 	vtGotoXY(NULL, &target, 16, 3);
-	vtAlign(&viewfinder, VT_BOTTOM_RIGHT);
+	vtAlign(&viewfinder, VT_BOTTOM|VT_RIGHT);
 	vtStamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	vtSetText(&viewfinder, true, LTSTR "██\n██\n██");
@@ -98,25 +99,25 @@ void alignTest(void) {
 	// top left 2x3
 	vtGotoXY(NULL, &viewfinder, -23, -1);
 	vtGotoXY(NULL, &target, -23, -1);
-	vtAlign(&viewfinder, VT_TOP_LEFT);
+	vtAlign(&viewfinder, VT_TOP|VT_LEFT);
 	vtStamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// top right 2x3
 	vtGotoXY(NULL, &viewfinder, -18, -1);
 	vtGotoXY(NULL, &target, -18, -1);
-	vtAlign(&viewfinder, VT_TOP_RIGHT);
+	vtAlign(&viewfinder, VT_TOP|VT_RIGHT);
 	vtStamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// bottom left 2x3
 	vtGotoXY(NULL, &viewfinder, -13, -1);
 	vtGotoXY(NULL, &target, -13, -1);
-	vtAlign(&viewfinder, VT_BOTTOM_LEFT);
+	vtAlign(&viewfinder, VT_BOTTOM|VT_LEFT);
 	vtStamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// bottom right 2x3
 	vtGotoXY(NULL, &viewfinder, -7, -1);
 	vtGotoXY(NULL, &target, -7, -1);
-	vtAlign(&viewfinder, VT_BOTTOM_RIGHT);
+	vtAlign(&viewfinder, VT_BOTTOM|VT_RIGHT);
 	vtStamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	vtSetText(&viewfinder, true, LTSTR "███\n███\n███");
@@ -124,25 +125,25 @@ void alignTest(void) {
 	// top left 3x3
 	vtGotoXY(NULL, &viewfinder, -2, -1);
 	vtGotoXY(NULL, &target, -2, -1);
-	vtAlign(&viewfinder, VT_TOP_LEFT);
+	vtAlign(&viewfinder, VT_TOP|VT_LEFT);
 	vtStamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// top right 3x3
 	vtGotoXY(NULL, &viewfinder, 4, -1);
 	vtGotoXY(NULL, &target, 4, -1);
-	vtAlign(&viewfinder, VT_TOP_RIGHT);
+	vtAlign(&viewfinder, VT_TOP|VT_RIGHT);
 	vtStamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// bottom left 3x3
 	vtGotoXY(NULL, &viewfinder, 10, -1);
 	vtGotoXY(NULL, &target, 10, -1);
-	vtAlign(&viewfinder, VT_BOTTOM_LEFT);
+	vtAlign(&viewfinder, VT_BOTTOM|VT_LEFT);
 	vtStamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	// bottom right 3x3
 	vtGotoXY(NULL, &viewfinder, 16, -1);
 	vtGotoXY(NULL, &target, 16, -1);
-	vtAlign(&viewfinder, VT_BOTTOM_RIGHT);
+	vtAlign(&viewfinder, VT_BOTTOM|VT_RIGHT);
 	vtStamp(&canvas, 2, LTOBJS{&viewfinder, &target});
 
 	vtPrint(&canvas, true);
@@ -384,6 +385,36 @@ void serializationTest(void) {
 	puts("done");
 }
 
+void xpImportTest(void) {
+	puts("xp import test:");
+
+	puts("1-VT_XP_LAYERS");
+	{
+		VTObj obj;
+		FILE *const file = fopen("assets/object-sprite.xp", "rb");
+		FILE *const map = fopen("assets/utf8.txt", "r");
+		vtInitializeXp(&obj, VT_XP_LAYERS, map, &file, 1);
+		for(unsigned int i = 0; i < vtSprites(&obj); i++) {
+			vtPrint(&obj, true);
+			vtNextSprite(&obj);
+		}
+		vtRelease(1, LTOBJS{&obj});
+	}
+	{
+		VTObj obj;
+		FILE *const file1 = fopen("assets/object-sprite.xp", "rb");
+		FILE *const file2 = fopen("assets/VCat.xp", "rb");
+		FILE *const map = fopen("assets/utf8.txt", "r");
+		vtInitializeXp(&obj, VT_XP_FILES, map, (FILE *[]){file1, file2}, 2);
+		for(unsigned int i = 0; i < vtSprites(&obj); i++) {
+			vtPrint(&obj, true);
+			vtNextSprite(&obj);
+		}
+		vtRelease(1, LTOBJS{&obj});
+	}
+	puts("done");
+}
+
 void dinosaur(void) {
 	puts("dinosaur:");
 	Obj dinosaur;
@@ -414,7 +445,8 @@ int main(void) {
 	dynamicMemoryTest();
 	printAxesTest();
 	serializationTest();
-	dinosaur();
+	xpImportTest();
+	// dinosaur();
 
 	// getchar();
 }
