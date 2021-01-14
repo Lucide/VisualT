@@ -3,17 +3,18 @@
 #=============================
 cmake_minimum_required(VERSION 3.17)
 
-set(HUNTER_STATUS_DEBUG YES CACHE BOOL "")
+unset(HUNTER_STATUS_DEBUG CACHE)
 #=============================
 # Hunter-related setup
 #=============================
 set(HUNTER_ROOT "${CMAKE_CURRENT_BINARY_DIR}/hunter" CACHE PATH "Path to Hunter root directory.")
-set(HUNTER_BUILD_SHARED_LIBS NO)
+option(HUNTER_BUILD_SHARED_LIBS "Build dependencies as shared libraries. Not explicitly supported." NO)
+mark_as_advanced(HUNTER_ROOT HUNTER_BUILD_SHARED_LIBS)
 option(VisualT_BUILD_SHARED_LIBS "Build VisualT libraries as shared libraries. A more specific alternative to BUILD_SHARED_LIBS." NO)
 if(VisualT_BUILD_SHARED_LIBS)
     set(BUILD_SHARED_LIBS YES)
 endif()
-option(VisualT_XP_IMPORTER "Build the .xp importer library." YES)
+option(VisualT_XP_IMPORTER "Build the .xp importer library." NO)
 if(VisualT_XP_IMPORTER)
     list(APPEND HUNTER_PACKAGES "ZLIB")
     if(BUILD_SHARED_LIBS)
@@ -43,7 +44,6 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 #enable_testing()
 
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 set(CMAKE_INSTALL_DOCDIR "${CMAKE_INSTALL_DATAROOTDIR}/doc/${PROJECT_NAME}")
 set(VisualT_export_dir "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 get_property(isMultiConfig GLOBAL

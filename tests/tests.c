@@ -426,7 +426,7 @@ void dinosaur(void) {
 
 int main(void) {
 	vtAbout();
-	puts("\nThese tests are meant to be ran with Valgrind: https://valgrind.org/\n");
+	puts("\nThese tests are meant to be ran through a memcheck: https://valgrind.org/\n");
 
 	//	printf("sizeof(void*)=%lu alignof(void*)=%lu\n", sizeof(void *), alignof(void *));
 	//	printf("sizeof(int)=%lu alignof(int)=%lu\n", sizeof(int), alignof(int));

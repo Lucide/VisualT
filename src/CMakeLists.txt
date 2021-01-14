@@ -24,9 +24,7 @@ if(MSVC)
 endif()
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
-        #todo
-        #add_compile_options("$<$<CONFIG:Debug>:-O2;-Wconversion;-Wall;-Wextra;-pedantic>")
-        add_compile_options("$<$<CONFIG:Debug>:-Wconversion;-Wall;-Wextra;-pedantic>")
+        add_compile_options("$<$<CONFIG:Debug>:-O2;-Wconversion;-Wall;-Wextra;-pedantic>")
     endif()
 endif()
 
