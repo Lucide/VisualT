@@ -10,9 +10,7 @@ set(public_headers_dir "${PROJECT_SOURCE_DIR}/include")
 #=============================
 # Configure Time Generation
 #=============================
-string(TIMESTAMP build_date "%d %B %Y %H:%M" UTC)
-list(GET private_headers_dirs 1 dir)
-configure_files(${dir}
+configure_files(${src_binary_dir}
                 FILES
                 "version.h.in")
 
