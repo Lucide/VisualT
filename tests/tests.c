@@ -386,6 +386,7 @@ void serializationTest(void) {
 }
 
 void xpImportTest(void) {
+	#ifdef VISUALT_IMPORT_XP
 	puts("xp import test:");
 
 	puts("1-VT_XP_LAYERS");
@@ -412,6 +413,9 @@ void xpImportTest(void) {
 		}
 		vtRelease(1, LTOBJS{&obj});
 	}
+	#else
+	puts("xp importer is disabled:");
+	#endif
 	puts("done");
 }
 
