@@ -18,8 +18,7 @@ rebase_files(private_headers
 rebase_files(private_headers
              ${src_binary_dir}
              FILES
-             "version.h"
-             "buildDate.h")
+             "version.h")
 
 set(public_headers_dirs
     ${public_headers_dir})
