@@ -17,12 +17,12 @@ static int countLines(FILE *const file) {
 	int lines = 0, c, pc = '\n';
 	while((c = getc(file)) != EOF) {
 		if(c == '\n') {
-			lines++;
+			++lines;
 		}
 		pc = c;
 	}
 	if(pc != '\n') {
-		lines++;
+		++lines;
 	}
 	if(ferror(file) != 0) {
 		perror(ERROR_HEADER);
@@ -32,17 +32,28 @@ static int countLines(FILE *const file) {
 	return lines;
 }
 
-static int binarySearch(int p, int q, uint32_t const k) {
+static void addInOrder(Tuple tuple, int length) {
+	int i = 0;
+	while(i < length && dct[i].from < tuple.from) {
+		++i;
+	}
+	for(int k = length; k > i; k--) {
+		dct[k] = dct[k-1];
+	}
+	dct[i] = tuple;
+}
+
+static int binarySearch(int p, int q, uint32_t const value) {
 	int pivot = (p+q)/2;
 
-	if(k == dct[pivot].from) {
+	if(value == dct[pivot].from) {
 		return pivot;
 	} else if(q-p <= 1) {
 		return -1;
-	} else if(k < dct[pivot].from) {
-		return binarySearch(p, pivot, k);
+	} else if(value < dct[pivot].from) {
+		return binarySearch(p, pivot, value);
 	} else {
-		return binarySearch(pivot+1, q, k);
+		return binarySearch(pivot+1, q, value);
 	}
 }
 
@@ -67,12 +78,14 @@ int loadDictionary(FILE *const mapFile) {
 		flagErrorAndGoto(closeFile);
 	}
 	dct = malloc((unsigned)dctLength*sizeof(Tuple));
-	for(int i = 0; i < dctLength; i++) {
-		if(fscanf(mapFile, "%"SCNu32" %"SCNu32, &dct[i].from, &dct[i].to) < 2) { // NOLINT(cert-err34-c)
+	for(int i = 0; i < dctLength; ++i) {
+		Tuple tuple;
+		if(fscanf(mapFile, "%"SCNu32" %"SCNu32, &tuple.from, &tuple.to) < 2) { // NOLINT(cert-err34-c)
 			perror(ERROR_HEADER);
 			flagErrorAndGoto(freeDictionary);
 		}
-		dct[i].to = codeToVTChar(dct[i].to);
+		tuple.to = codeToVTChar(tuple.to);
+		addInOrder(tuple, i);
 		int c;
 		do {
 			c = fgetc(mapFile);
@@ -82,8 +95,8 @@ int loadDictionary(FILE *const mapFile) {
 			flagErrorAndGoto(freeDictionary);
 		}
 	}
-	freeDictionary:
 	if(error) {
+		freeDictionary:
 		free(dct);
 	}
 	closeFile:
@@ -91,8 +104,8 @@ int loadDictionary(FILE *const mapFile) {
 		perror(ERROR_HEADER);
 		flagErrorAndGoto(error);
 	}
-	error:
 	if(error) {
+		error:
 		return -1;
 	}
 	return 0;

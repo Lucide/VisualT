@@ -20,10 +20,10 @@ void refresh(VTObj const canvas) {
 }
 
 void animate(VTObj const canvas, VTObj obj) {
-	for(int i = 0; i < 200; i++) {
+	for(int i = 0; i < 200; ++i) {
 		vtClear(&canvas);
 		double freq;
-		for(int x = -26; x <= 26; x++) {
+		for(int x = -26; x <= 26; ++x) {
 			if(i < 100) {
 				freq = i/99.*(.2-.1)+.1;
 			} else {

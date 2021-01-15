@@ -68,7 +68,7 @@ int main(void) {
 	vtRender(&canvas, 4, LTOBJS{&penLayer, &info, &cat, &textBox});
 	vtPrint(&canvas, true);
 
-	for(int i = 0; i < 5; i++) {
+	for(int i = 0; i < 5; ++i) {
 		vtStamp(&penLayer, 1, LTOBJS{&cat});
 		vtChangeX(NULL, &cat, 10);
 	} //a cycle where the cat stamps on the stage and moves right by 10
@@ -146,7 +146,7 @@ void help(VTObj *info, const int i) {
 			vtSetText(info, true, LTSTR "vtClear(&penLayer);");
 			break;
 		case 10:
-			vtSetText(info, true, LTSTR "for(int i = 0; i < 5; i++) {\n"
+			vtSetText(info, true, LTSTR "for(int i = 0; i < 5; ++i) {\n"
 																	"  vtStamp(&penLayer, 1, LTOBJS{&cat});\n"
 																	"  vtChangeX(NULL, &cat, 10);\n"
 																	"}");

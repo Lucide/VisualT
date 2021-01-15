@@ -14,20 +14,20 @@ void penTest(VTChar penChar) {
 	vtSetPenGlyph(&p, penChar);
 
 	vtGotoXY(NULL, &p, -57, 7);
-	for(unsigned int penSize = 1; penSize <= 6; penSize++) {
+	for(unsigned int penSize = 1; penSize <= 6; ++penSize) {
 		vtChangeX(NULL, &p, 13);
 		vtSetPenSize(&p, penSize);
 		vtChangeX(&canvas, &p, 0);
 	}
 
 	vtGotoXY(NULL, &p, -46, -2);
-	for(unsigned int i = 1; i <= 6; i++) {
+	for(unsigned int i = 1; i <= 6; ++i) {
 		vtSetPenSize(&p, i);
 		vtChangeX(&canvas, &p, 10);
 	}
 
 	vtGotoXY(NULL, &p, 40, 6);
-	for(unsigned int i = 1; i <= 6; i++) {
+	for(unsigned int i = 1; i <= 6; ++i) {
 		vtSetPenSize(&p, i);
 		vtChangeY(&canvas, &p, -2);
 	}
@@ -394,7 +394,7 @@ void xpImportTest(void) {
 		FILE *const file = fopen("assets/object-sprite.xp", "rb");
 		FILE *const map = fopen("assets/utf8.txt", "r");
 		vtInitializeXp(&obj, VT_XP_LAYERS, map, &file, 1);
-		for(unsigned int i = 0; i < vtSprites(&obj); i++) {
+		for(unsigned int i = 0; i < vtSprites(&obj); ++i) {
 			vtPrint(&obj, true);
 			vtNextSprite(&obj);
 		}
@@ -406,7 +406,7 @@ void xpImportTest(void) {
 		FILE *const file2 = fopen("assets/VCat.xp", "rb");
 		FILE *const map = fopen("assets/utf8.txt", "r");
 		vtInitializeXp(&obj, VT_XP_FILES, map, (FILE *[]){file1, file2}, 2);
-		for(unsigned int i = 0; i < vtSprites(&obj); i++) {
+		for(unsigned int i = 0; i < vtSprites(&obj); ++i) {
 			vtPrint(&obj, true);
 			vtNextSprite(&obj);
 		}
@@ -447,6 +447,8 @@ int main(void) {
 	serializationTest();
 	xpImportTest();
 	// dinosaur();
+
+
 
 	// getchar();
 }

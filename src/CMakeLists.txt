@@ -3,8 +3,9 @@ include(utils)
 #=============================
 # Configuration
 #=============================
-set(private_headers_dirs ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-set(public_headers_dirs "${PROJECT_SOURCE_DIR}/include")
+set(src_source_dir ${CMAKE_CURRENT_SOURCE_DIR})
+set(src_binary_dir ${CMAKE_CURRENT_BINARY_DIR})
+set(public_headers_dir "${PROJECT_SOURCE_DIR}/include")
 
 #=============================
 # Configure Time Generation
@@ -13,8 +14,7 @@ string(TIMESTAMP build_date "%d %B %Y %H:%M" UTC)
 list(GET private_headers_dirs 1 dir)
 configure_files(${dir}
                 FILES
-                "version.h.in"
-                "buildDate.h.in")
+                "version.h.in")
 
 #=============================
 # Targets Configuration

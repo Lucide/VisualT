@@ -195,7 +195,7 @@ void vtInitializeStrings(VTObj *obj, unsigned int utf8StringsLength, VTStrs utf8
  * @param obj a pointer to the Object to initialize
  * @param src a pointer to the source Object
  */
-void vtInitializeObj(VTObj *obj, VTObj const *src);
+void vtInitializeObj(VTObj *restrict obj, VTObj const *restrict src);
 
 /**
  * Frees the dynamic memory of all the Objects referenced in the array @c objs.
@@ -205,7 +205,7 @@ void vtInitializeObj(VTObj *obj, VTObj const *src);
  * @param objsLength the length of @c objs
  * @param objs (@macro{LTOBJS}) an array of pointers to the Objects you want to release
  */
-void vtRelease(unsigned int objsLength, VTObjs objs);
+void vtRelease(unsigned int objsLength, VTObj const *restrict const *objs);
 
 /**
  * A @e reallocator that replaces Sprite n°@c spriteDest of @c *dest with a clone of Sprite n°@c spriteSrc of @c *src.

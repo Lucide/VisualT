@@ -10,6 +10,7 @@
 
 #else
 	#include <unistd.h>
+
 #endif
 
 #define ERROR_HEADER "VT .xp loader error: "
@@ -62,16 +63,16 @@ static int isTransparent(gzFile file) {
 	return 0;
 }
 
-static void allocateSpritesOnce(Obj *const obj, int length) {
+static void allocateSpritesOnce(Obj *const obj, unsigned int length) {
 	if(obj->sprites == NULL) {
-		obj->length = (unsigned)length;
-		obj->sprites = malloc(obj->length*sizeof(GlyphMap));
+		obj->length = length;
+		obj->sprites = malloc(length*sizeof(GlyphMap));
 	}
 }
 
-static int loadSpritesFromLayers(Obj *const obj, gzFile file, int *const allocatedSprites) {
+static int loadSpritesFromLayers(Obj *const obj, gzFile file, unsigned int *const allocatedSprites) {
 	int width, height;
-	for(; *allocatedSprites < (int)obj->length;) {
+	for(; *allocatedSprites < obj->length;) {
 		{
 			uint32_t buffer[2];
 			if(readInts(file, buffer, 2) < 0) {
@@ -81,9 +82,9 @@ static int loadSpritesFromLayers(Obj *const obj, gzFile file, int *const allocat
 		}
 		GlyphMap *const sprite = &obj->sprites[*allocatedSprites];
 		initializeMap(Glyphs, sprite, width, height);
-		(*allocatedSprites)++;
-		for(int x = 0; x < width; x++) {
-			for(int y = 0; y < height; y++) {
+		++(*allocatedSprites);
+		for(int x = 0; x < width; ++x) {
+			for(int y = 0; y < height; ++y) {
 				VTChar c;
 				if(readInts(file, &c, 1) < 0) {
 					return -1;
@@ -104,7 +105,7 @@ static int loadSpritesFromLayers(Obj *const obj, gzFile file, int *const allocat
 	return 0;
 }
 
-static int loadSpritesFromFiles(Obj *const obj, gzFile file, int layerCount, int *const allocatedSprites) {
+static int loadSpritesFromFiles(Obj *const obj, gzFile file, int layerCount, unsigned int *const allocatedSprites) {
 	int width, height;
 	{
 		uint32_t buffer[2];
@@ -115,10 +116,10 @@ static int loadSpritesFromFiles(Obj *const obj, gzFile file, int layerCount, int
 	}
 	GlyphMap *const sprite = &obj->sprites[*allocatedSprites];
 	initializeMap(Glyphs, sprite, width, height);
-	(*allocatedSprites)++;
-	for(int k = 0; k < layerCount; k++) {
-		for(int x = 0; x < width; x++) {
-			for(int y = 0; y < height; y++) {
+	++(*allocatedSprites);
+	for(int k = 0; k < layerCount; ++k) {
+		for(int x = 0; x < width; ++x) {
+			for(int y = 0; y < height; ++y) {
 				VTChar c;
 				if(readInts(file, &c, 1) < 0) {
 					return -1;
@@ -177,16 +178,16 @@ static int closeFile(gzFile file, int fd) {
 	return 0;
 }
 
-int loadXp(Obj *const obj, VTXpLoadMode const loadMode, FILE *const restrict *const xpFiles, int const filesLength) {
+int loadXp(Obj *const obj, VTXpLoadMode const loadMode, FILE *const restrict *const xpFiles, unsigned int const filesLength) {
 	int error = false;
 	obj->sprites = NULL;
 
-	for(int allocatedSprites = 0, i = 0; i < filesLength; i++) {
+	for(unsigned int allocatedSprites = 0, i = 0; i < filesLength; ++i) {
 		// open gzFile
 		gzFile file;
 		int fd = openFile(&file, xpFiles[i]);
 		if(fd < 0) {
-			flagErrorAndGoto(error);
+			flagErrorAndGoto(freeMemory);
 		}
 		// check header
 		int layerCount = readHeader(file);
@@ -195,7 +196,7 @@ int loadXp(Obj *const obj, VTXpLoadMode const loadMode, FILE *const restrict *co
 		}
 		// allocate sprite array once, allocate new sprites
 		if(loadMode == VT_XP_LAYERS) {
-			allocateSpritesOnce(obj, layerCount);
+			allocateSpritesOnce(obj, (unsigned)layerCount);
 			error = loadSpritesFromLayers(obj, file, &allocatedSprites);
 		} else {
 			allocateSpritesOnce(obj, filesLength);
@@ -205,13 +206,13 @@ int loadXp(Obj *const obj, VTXpLoadMode const loadMode, FILE *const restrict *co
 		// close gzFile
 		closeXpFile:
 		if(closeFile(file, fd) < 0) {
-			flagErrorAndGoto(error);
+			flagErrorAndGoto(freeMemory);
 		}
-		//continue;
-		error:
 		if(error) {
+			// free allocated memory
+			freeMemory:
 			// free already allocated sprites
-			for(int k = 0; k < allocatedSprites; k++) {
+			for(unsigned int k = 0; k < allocatedSprites; ++k) {
 				free(obj->sprites[k].chars);
 			}
 			// free sprites array, if allocated
@@ -222,8 +223,10 @@ int loadXp(Obj *const obj, VTXpLoadMode const loadMode, FILE *const restrict *co
 		}
 	}
 	// close original files
-	for(int i = 0; i < filesLength; i++) {
-		fclose(xpFiles[i]);
+	for(unsigned int i = 0; i < filesLength; ++i) {
+		if(fclose(xpFiles[i]) == EOF) {
+			error = true;
+		}
 	}
 	if(error) {
 		return -1;

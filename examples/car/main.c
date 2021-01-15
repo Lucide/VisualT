@@ -40,7 +40,7 @@ int unitShift(double const v) {
 
 double estimateMaxSpeed(void) {
 	double v = 0;
-	for(int i = 0; i < 60; i++) {
+	for(int i = 0; i < 60; ++i) {
 		double fDrag = -cDrag*v*v;
 		double fRR = -crr*v;
 		v = v+(traction+fDrag+fRR)/mass;
@@ -50,7 +50,7 @@ double estimateMaxSpeed(void) {
 
 void generateTerrain(int distance) {
 	vtShift(terrain, VT_LEFT, distance);
-	for(int x = vtExtremum(terrain, VT_RIGHT)-distance+1; x <= vtExtremum(terrain, VT_RIGHT); x++) {
+	for(int x = vtExtremum(terrain, VT_RIGHT)-distance+1; x <= vtExtremum(terrain, VT_RIGHT); ++x) {
 		switch(as.terrainState) {
 			default:
 			case 0://high

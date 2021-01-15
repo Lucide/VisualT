@@ -14,23 +14,24 @@ set(sources
     "loadXp.c"
     "translateXp.c")
 
-list(POP_BACK private_headers_dirs)
-list(GET private_headers_dirs 0 dir)
+set(private_headers_dirs
+    ${src_source_dir}
+    ${src_binary_dir})
 rebase_files(private_headers
-             ${dir}
+             ${src_source_dir}
              FILES
              "visualt-internals.h")
 
-list(GET public_headers_dirs 0 dir)
+set(public_headers_dirs
+    ${public_headers_dir}
+    ${CMAKE_CURRENT_BINARY_DIR})
 rebase_files(public_headers
-             ${dir}
+             ${public_headers_dir}
              FILES
              "visualt/visualt.h"
              "visualt/import-xp.h")
-list(APPEND public_headers_dirs ${CMAKE_CURRENT_BINARY_DIR})
-list(GET public_headers_dirs 1 dir)
 rebase_files(public_headers
-             ${dir}
+             ${CMAKE_CURRENT_BINARY_DIR}
              FILES
              "import_xp_export.h")
 
@@ -65,7 +66,7 @@ target_link_libraries(VisualT_import_xp PRIVATE
                       ZLIB::ZLIB)
 # disable linker warnings about missing zlib .pdb files on windows
 target_link_options(VisualT_import_xp
-                    PRIVATE  "$<$<C_COMPILER_ID:MSVC>:LINKER:/ignore:4099>")
+                    PRIVATE "$<$<C_COMPILER_ID:MSVC>:LINKER:/ignore:4099>")
 set_target_properties(VisualT_import_xp PROPERTIES
                       OUTPUT_NAME importXp
                       EXPORT_NAME import_xp

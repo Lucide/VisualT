@@ -8,21 +8,23 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS YES)
 
 set(sources "visualt.c")
 
-list(GET private_headers_dirs 0 dir)
+set(private_headers_dirs
+    ${src_source_dir}
+    ${src_binary_dir})
 rebase_files(private_headers
-             ${dir}
+             ${src_source_dir}
              FILES
              "visualt-internals.h")
-list(GET private_headers_dirs 1 dir)
 rebase_files(private_headers
-             ${dir}
+             ${src_binary_dir}
              FILES
              "version.h"
              "buildDate.h")
 
-list(GET public_headers_dirs 0 dir)
+set(public_headers_dirs
+    ${public_headers_dir})
 rebase_files(public_headers
-             ${dir}
+             ${public_headers_dir}
              FILES
              "visualt/visualt.h")
 

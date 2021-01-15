@@ -24,8 +24,8 @@ int vtInitializeXp(Obj *const obj, VTXpLoadMode const loadMode, FILE *const rest
 	initializeObj(obj);
 	freeDictionary:
 	freeDictionary();
-	error:
 	if(error) {
+		error:
 		return -1;
 	}
 	return 0;

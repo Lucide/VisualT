@@ -1,7 +1,0 @@
-#pragma once
-#ifndef VISUALT_BUILDDATE_H
-#define VISUALT_BUILDDATE_H
-
-#define VISUALT_BUILD_DATE "@build_date@"
-
-#endif //VISUALT_BUILDDATE_H
