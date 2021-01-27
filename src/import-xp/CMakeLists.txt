@@ -40,7 +40,6 @@ rebase_files(public_headers
 # Targets
 #=============================
 add_library(VisualT_import_xp
-            EXCLUDE_FROM_ALL
             ${private_headers}
             ${public_headers}
             ${sources})
@@ -57,8 +56,8 @@ generate_export_header(VisualT_import_xp
 #=============================
 # Targets Configuration
 #=============================
-# enable fileno()
 if(UNIX)
+    # enable fileno()
     target_compile_definitions(VisualT_import_xp
                                PRIVATE _POSIX_C_SOURCE=1)
 endif()
@@ -74,6 +73,10 @@ set_target_properties(VisualT_import_xp PROPERTIES
 target_include_directories(VisualT_import_xp
                            PRIVATE ${private_headers_dirs}
                            PUBLIC "$<BUILD_INTERFACE:${public_headers_dirs}>")
+
+set_target_properties(ZLIB::ZLIB PROPERTIES
+                      MAP_IMPORTED_CONFIG_MINSIZEREL Release
+                      MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release)
 
 #=============================
 # Installation

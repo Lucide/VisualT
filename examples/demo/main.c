@@ -162,6 +162,6 @@ void help(VTObj *info, const int i) {
 			return;
 	}
 	vtGotoXY(NULL, info, -50, 10);
-	vtAlign(info, VT_TOP|VT_LEFT);
+	vtAlign(info, VTTOP|VTLEFT);
 	getch();
 }

@@ -70,7 +70,7 @@ function(_sphinx_add_target target_name builder)
     endif()
     add_custom_target(${target_name}
                       ${ARG_ALL}
-                      COMMAND ${Sphinx_EXECUTABLE}
+                      COMMAND Sphinx::sphinx
                       -b ${builder}
                       -c ${ARG_CONFIGURATION_DIR}
                       ${ARG_SOURCE_DIR}

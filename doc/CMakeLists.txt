@@ -7,8 +7,12 @@ find_package(Doxygen REQUIRED)
 set(VisualT_PYTHON_VENV "" CACHE PATH "If the python dependencies are installed in a virtual environment, set the path here.")
 relativify_path(VisualT_PYTHON_VENV)
 list(APPEND CMAKE_PREFIX_PATH ${VisualT_PYTHON_VENV})
-find_package(Sphinx MODULE REQUIRED)
+find_package(Sphinx MODULE)
 list(POP_BACK CMAKE_PREFIX_PATH)
+
+if(NOT Sphinx_FOUND)
+    return()
+endif()
 
 #=============================
 # Doxyfile configuration
@@ -19,6 +23,10 @@ set(DOXYGEN_MARKDOWN_SUPPORT NO)
 set(DOXYGEN_GENERATE_HTML NO)
 set(DOXYGEN_GENERATE_XML YES)
 set(DOXYGEN_FILE_PATTERNS *.h)
+set(DOXYGEN_MACRO_EXPANSION YES)
+set(DOXYGEN_EXPAND_ONLY_PREDEF YES)
+list(APPEND DOXYGEN_PREDEFINED
+     [[VISUALT_IMPORT_XP_EXPORT=]])
 list(APPEND DOXYGEN_ALIASES
      [["rst=@verbatim embed:rst:leading-asterisk"]] #begin rst block inside comment block
      [["rsti=@verbatim embed:rst:inline"]]          #begin inline rst text
@@ -33,6 +41,7 @@ list(APPEND DOXYGEN_ALIASES
      [["enum{2}=@rsti :enum:`\2 <\1>` @endrst"]]    #named reference to an enum
      [["macro{1}=@rsti :macro:`\1` @endrst"]]       #reference to a macro
      [["macro{2}=@rsti :macro:`\2 <\1>` @endrst"]]  #named reference to a macro
+     [["n=@rsti |n| @endrst"]]
 
      [["b{1}=<b>\1</b>"]]                           #bold
      [["e{1}=<em>\1</em>"]]                         #italic
@@ -42,7 +51,7 @@ list(APPEND DOXYGEN_ALIASES
 # Targets
 #=============================
 doxygen_add_docs(VisualT_doxygen_generate_xml
-                 "${PROJECT_SOURCE_DIR}/include/visualt/visualt.h")
+                 "${PROJECT_SOURCE_DIR}/include/visualt")
 
 sphinx_add_docs(VisualT_sphinx_generate
                 SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}

@@ -12,6 +12,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+//----DATA TYPES----
+
 /**
  * Represents a UTF8-encoded read-only codepoint.
  *
@@ -29,6 +31,8 @@ struct VTObj {
 	unsigned short penSize;
 	bool visible;
 };
+
+//----INPUT TYPES----
 
 /**
  * Represents a VisualT Object (@e{it's not a pointer! this is the real deal}).
@@ -75,11 +79,28 @@ typedef int const (*VTSizes)[2];
 typedef VTObj const *const *VTObjs;
 
 /**
- * This enumerator is meant to be used with @func{vtOffset}.
+ * This enumerator is meant to be used whenever the API expects a direction relative to a Sprite.
+ *
+ * Sometimes directions can be combined with the bitwise or operator, e.g. @c{VT_TOP | VT_LEFT}
+ * @see @func{vtAlign}
  */
 typedef enum VTDirection {
-	VT_LEFT = 1, VT_RIGHT = 2, VT_TOP = 4, VT_BOTTOM = 8
+	VTLEFT = 1, VTRIGHT = 2, VTTOP = 4, VTBOTTOM = 8
 } VTDirection;
+
+/**
+ * This enumerator is meant to be used with @func{vtSetText}.
+ */
+typedef enum VTSetTextMode {
+	VTCROP, VTFIT
+} VTSetTextMode;
+
+/**
+ * This macro is a more semantic alternative to @c NULL in movement functions.
+ *
+ * It resembles "MoVe only", without being longer than the @c NULL keyword itself.
+ */
+#define VTMV NULL
 
 /**
  * A helper macro to cast a @b literal string to @type{VTStr}.
@@ -112,6 +133,8 @@ typedef enum VTDirection {
  */
 #define LTOBJS (VTObjs)(VTObj* [])
 
+//----MISCELLANEOUS----
+
 /**
  * Prints info about VisualT.
  *
@@ -120,11 +143,13 @@ typedef enum VTDirection {
 void vtAbout();
 
 /**
- * A helper function to convert a @b{single-glyph} literal string to a @type{VTChar}.
- * @param ltChar a UTF8-encoded string containing a single glyph
- * @return The first glyph encoded in a @type{VTChar}, so that VisualT can process it.
+ * A helper function to convert a @b{single-character} literal string to a @type{VTChar}.
+ * @param ltChar a UTF8-encoded string containing a single character
+ * @return The first character encoded in a @type{VTChar}, so that VisualT can process it.
  */
 VTChar vtChar(char const *ltChar);
+
+//----INITIALIZERS, RELEASERS AND REALLOCATORS----
 
 /**
  * Initializes  @c *obj to a blank Object with @c sizesLength Sprites of @c sizes size.
@@ -161,10 +186,11 @@ void vtInitializeArray(VTObj *obj, VTChar const *v);
  *
  * A @e{serialized Object file} is a plain text file containing a @e{serialized Object array}'s values separated by a
  * space.
- * The file is automatically closed.
  * @see @func{vtInitializeArray}
  * @param obj a pointer the Object to initialize
  * @param file a pointer to a serialized Object file
+ * @return A value < 0 if the operation failed. An attempt is always made to close @c file, even in case of failure,
+ * where @c{*obj} is left uninitialized.
  */
 int vtInitializeFile(VTObj *obj, FILE *file);
 
@@ -190,7 +216,8 @@ void vtInitializeStrings(VTObj *obj, unsigned int utf8StringsLength, VTStrs utf8
 /**
  * Initializes @c *obj as a clone of @c *src.
  *
- * This initializer effectively creates a deep clone of an Object. All the data in the heap is copied to a new location.
+ * This initializer effectively creates a deep clone of an Object, all the data in the heap is copied.
+ * It goes without saying that @c *obj must be uninitialized, and @c *src must not, hence the @c restrict qualifier.
  *
  * @param obj a pointer to the Object to initialize
  * @param src a pointer to the source Object
@@ -200,7 +227,9 @@ void vtInitializeObj(VTObj *restrict obj, VTObj const *restrict src);
 /**
  * Frees the dynamic memory of all the Objects referenced in the array @c objs.
  *
- * Once released, and Object can be re-initialized safely.
+ * Once released, and Object can be re-initialized safely. You might notice that this function doesn't accept a plain
+ * @type{vtObjs}, but a @c{restrict}ed qualified variant. This to emphasize that the same Object can't be released twice,
+ * not even instances.
  *
  * @param objsLength the length of @c objs
  * @param objs (@macro{LTOBJS}) an array of pointers to the Objects you want to release
@@ -231,6 +260,8 @@ void vtCloneSprite(VTObj const *dest, unsigned int spriteDest, VTObj const *src,
  */
 void vtResize(VTObj *obj, unsigned int width, unsigned int height);
 
+//----DRAWING----
+
 /**
  * Draws all the Objects referenced in the @c objs array onto the @c *canvas.
  *
@@ -239,8 +270,7 @@ void vtResize(VTObj *obj, unsigned int width, unsigned int height);
  * @code
  * vtRender(&canvas, 3, LTOBJS{&objA, &objB, &objC});
  * @endcode
- * The main difference compared to @func{vtStamp}, is that the canvas is @func{vtClear,cleared} in the process, and that
- * allows to start drawing from the last Object, and only overwrite the empty cells.
+ * The main difference from @func{vtStamp}, is that the canvas is @func{vtClear,cleared} in the process.
  *
  * @param canvas a pointer to the Object that will act as the canvas
  * @param objsLength the length of @c objs
@@ -260,6 +290,89 @@ void vtRender(VTObj const *canvas, unsigned int objsLength, VTObjs objs);
  * @param objs (@macro{LTOBJS}) an array of pointers to the Objects you want to stamp
  */
 void vtStamp(VTObj const *canvas, unsigned int objsLength, VTObjs objs);
+
+/**
+ * Sets @c{*obj}'s active Sprite content to @c utf8String.
+ * - In @macro{VTFIT} mode, the Sprite will be resized (thus @e reallocated) to fit the content in @c utf8String.
+ * - In @macro{VTCROP} mode, everything that goes outside the active Sprite is instead dropped. The parsing is done the same
+ * as in @func{vtInitializeStrings}.
+ *
+ * @code
+ * vtSetText(&obj, LTSTR "A\vKaomoji\n\v(o˘◡˘o)");
+ * @endcode
+ * @param obj a pointer to the Object
+ * @param mode selects the draw mode
+ * @param utf8String (@macro{LTSTR}) an UTF8 string
+ */
+void vtSetText(VTObj *obj, VTSetTextMode mode, VTStr utf8String);
+
+/**
+ * Clears @c{*obj}'s active Sprite. Clearing a Sprite sets all its cell to 0 (transparent).
+ *
+ * Equivalent to @c{fill(&obj, 0);}.
+ *
+ * @param obj a pointer to the Object you want to clear
+ */
+void vtClear(VTObj const *obj);
+
+/**
+ * Sets every cell of @c{*obj}'s active Sprite to the character in @c fillChar.
+ * @code
+ * vtFill(&obj, vtChar(LTSTR "▀"));
+ * @endcode
+ * @param obj a pointer to the Object you want to fill
+ * @param fillChar (@func{vtChar}) the character you want to fill the obj with
+ */
+void vtFill(VTObj const *obj, VTChar fillChar);
+
+/**
+ * Replaces every cell of @c{*obj}'s active Sprite containing @c oldChar with @c newChar.
+ * @param obj a pointer to the Object
+ * @param oldChar (@func{vtChar}) the character you want to replace
+ * @param newChar (@func{vtChar}) the replacing character
+ */
+void vtReplace(VTObj const *obj, VTChar oldChar, VTChar newChar);
+
+/**
+ * Shifts the content of @c{*obj}'s active Sprite by @c amount cells in the specified @c direction.
+ *
+ * Trailing cells will be empty.
+ *
+ * @param obj a pointer to the Object
+ * @param direction in which direction to perform the shift
+ * @param amount the shift amount. Negative values are supported
+ */
+void vtShift(VTObj const *obj, VTDirection direction, int amount);
+
+/**
+ * Rotates each row/column of @c{*obj}'s active Sprite by @c amount cells in the specified @c direction.
+ * @param obj a pointer to the Object
+ * @param direction in which direction to perform the row/column rotation
+ * @param amount the rotation amount. Negative values are supported
+ */
+void vtRotate(VTObj const *obj, VTDirection direction, int amount);
+
+/**
+ * Draws the content of @c{*src}'s Sprite n°@c spriteSrc onto @c{*dest}'s Sprite n°@c spriteDest of the same size.
+ *
+ * This function exists to solve a very specific task: to flatten the canvas layers. You can set up a canvas with two or
+ * more Sprites @b{of the same size}, and use them as layers (e.g. render layer + pen layer). This function lets you
+ * @e overlay a Sprite on another, even if they belong to the same Object.
+ *
+ * @param dest a pointer to the Object with the Sprite on which to draw
+ * @param spriteDest the to-be-drawn onto Sprite number
+ * @param src a pointer to the Object with the Sprite to overlay
+ * @param spriteSrc the to-be-overlaid Sprite number
+ */
+void vtOverlay(VTObj const *dest, unsigned int spriteDest, VTObj const *src, unsigned int spriteSrc);
+
+/**
+ * Draws a visual representation of the coordinate system on @c{*obj}'s active Sprite.
+ * @param obj a pointer to the Object
+ */
+void vtDrawAxes(VTObj const *obj);
+
+//----PRINTERS----
 
 /**
  * Prints @c *obj to stdout. If @c border is true, also prints a frame around the output.
@@ -301,7 +414,7 @@ void vtPrint(VTObj const *obj, bool border);
 size_t vtPrintToString(VTObj const *obj, bool border, uint8_t **utf8Buffer);
 
 /**
- * Calculates the size of the buffer @c *obj would occupy if printed. With or without @c border.
+ * Calculates the size of the buffer that @c *obj would occupy if printed. With or without @c border.
  *
  * This is useful if you want to allocate the buffer yourself when using @func{vtPrintToString}.
  *
@@ -310,6 +423,8 @@ size_t vtPrintToString(VTObj const *obj, bool border, uint8_t **utf8Buffer);
  * @return The size of the buffer @c *obj would occupy if printed.
  */
 size_t vtPrintStringSize(VTObj const *obj, bool border);
+
+//----SPRITE OPERATIONS----
 
 /**
  * Gets @c{*obj}'s amount of Sprites.
@@ -359,114 +474,38 @@ int vtWidth(VTObj const *obj);
 int vtHeight(VTObj const *obj);
 
 /**
- * Gets the maximum visible coordinate (extrema) of the given sprite
+ * Gets the maximum visible coordinate (extrema) of @c{*obj}'s active Sprite in the specified @c direction.
  * @param obj a pointer to the Object
- * @param direction specifies the desired direction
- * @return The coordinate value.
+ * @param direction the axis direction
+ * @return The maximum visible coordinate of the active Sprite.
  */
 int vtExtremum(VTObj const *obj, VTDirection direction);
 
-/**
- * Sets @c{*obj}'s active Sprite content to @c utf8String. If @c fitToContent is @c true, the sprite will be reallocated
- * to fit @c utf8String. The parsing is done the same as in @func{vtInitializeStrings}.
- * @code
- * vtSetText(&obj, LTSTR "A\vKaomoji\n\v(o˘◡˘o)");
- * @endcode
- * @param obj a pointer to the Object
- * @param fitToContent resize the sprite
- * @param utf8String (@macro{LTSTR}) an UTF8 string
- */
-void vtSetText(VTObj *obj, bool fitToContent, VTStr utf8String);
-
-/**
- * Clears @c{*obj}'s active Sprite. Clearing a Sprite sets all its cell to 0 (transparent).
- *
- * Equivalent to @c{fill(&obj, 0);}.
- *
- * @param obj a pointer to the Object you want to clear
- */
-void vtClear(VTObj const *obj);
-
-/**
- * Sets every cell of @c{*obj}'s active Sprite to the glyph in @c fillChar.
- * @code
- * vtFill(&obj, vtChar(LTSTR "▀"));
- * @endcode
- * @param obj a pointer to the Object you want to fill
- * @param fillChar (@func{vtChar}) the character you want to fill the obj with
- */
-void vtFill(VTObj const *obj, VTChar fillChar);
-
-/**
- * Replaces every cell of @c{*obj}'s active Sprite containing @c oldChar with the glyph in @c newChar.
- * @param obj a pointer to the Object
- * @param oldChar (@func{vtChar}) the character you want to replace
- * @param newChar (@func{vtChar}) the replacing character
- */
-void vtReplace(VTObj const *obj, VTChar oldChar, VTChar newChar);
-
-/**
- * Shifts every cell of @c{*obj}'s active Sprite of @c amount in the specified @c direction.
- *
- * Trailing cells will be empty.
- *
- * @param obj a pointer to the Object
- * @param direction in which direction to perform the shift
- * @param amount the shift amount. Negative values are supported
- */
-void vtShift(VTObj const *obj, VTDirection direction, int amount);
-
-/**
- * Rotates each row/column of @c{*obj}'s active Sprite of @c amount in the specified @c direction.
- * @param obj a pointer to the Object
- * @param direction in which direction to perform the row/column rotation
- * @param amount the rotation amount. Negative values are supported
- */
-void vtRotate(VTObj const *obj, VTDirection direction, int amount);
-
-/**
- * Draws the content of @c{*src}'s Sprite n°@c spriteSrc onto @c{*dest}'s Sprite n°@c spriteDest of the same size.
- *
- * This function exists to solve a very specific task: to flatten the canvas layers. You can set up a canvas with two or
- * more Sprites @b{of the same size}, and use them as layers (e.g. render layer + pen layer). This function lets you
- * @e overlay a Sprite on another, even if they belong to the same Object.
- *
- * @param dest a pointer to the Object with the Sprite on which to draw
- * @param spriteDest the to-be-drawn onto Sprite number
- * @param src a pointer to the Object with the Sprite to overlay
- * @param spriteSrc the to-be-overlaid Sprite number
- */
-void vtOverlay(VTObj const *dest, unsigned int spriteDest, VTObj const *src, unsigned int spriteSrc);
-
-/**
- * Draws a visual representation of the coordinate system on the @c{*obj}.
- * @param obj a pointer to the affected Object
- */
-void vtDrawAxes(VTObj const *obj);
+//----OBJECT OPERATIONS----
 
 /**
  * Gets @c{*obj}'s visibility flag.
- * @param obj a pointer to the processed Object
+ * @param obj a pointer to the Object
  * @return @c true if the Object is visible, @c false otherwise.
  */
 bool vtVisible(VTObj const *obj);
 
 /**
  * Sets @c{*obj}'s visibility flag to @c true.
- * @param obj a pointer to the affected Object
+ * @param obj a pointer to the Object
  */
 void vtShow(VTObj *obj);
 
 /**
  * Sets @c{*obj}'s visibility flag to @c false.
- * @param obj a pointer to the affected Object
+ * @param obj a pointer to the Object
  */
 void vtHide(VTObj *obj);
 
 /**
  * Sets @c{*obj}'s visibility flag to @c visible.
- * @param obj a pointer to the affected Object
- * @param visible the value you want to set
+ * @param obj a pointer to the Object
+ * @param visible the new value
  */
 void vtSetVisibility(VTObj *obj, bool visible);
 
@@ -487,56 +526,60 @@ void vtSerialize(VTObj const *obj, unsigned int *v);
  * This is useful if you want to allocate the array yourself when using @func{vtSerialize}.
  *
  * @param obj a pointer to the processed Object
- * @return The size of the array @c *obj would occupy if serialized.
+ * @return The size of the array.
  */
 size_t vtSerializedArraySize(VTObj const *obj);
 
+//----PEN OPERATIONS----
+
 /**
- * Gets @c{*obj}'s pen glyph.
- * @param obj a pointer to the Object you wan to process
- * @return The Object's pen glyph.
+ * Gets @c{*obj}'s pen character.
+ * @param obj a pointer to the Object
+ * @return The pen character of the Object.
  */
-VTChar vtPenGlyph(VTObj const *obj);
+VTChar vtPenChar(VTObj const *obj);
 
 /**
  * Gets @c{*obj}'s pen size.
- * @param obj a pointer to the Object you wan to process
- * @return The Object's pen size, if outside the [1,6] interval, it will default to 1
+ * @param obj a pointer to the Object
+ * @return The pen size of the Object.
  */
 unsigned short vtPenSize(VTObj const *obj);
 
 /**
  * Sets @c{*obj}'s pen size to @c size.
- * @param obj a pointer to the affected Object
- * @param size the value you want to set, if outside of the [1,6] interval, the pen size defaults to 1
+ * @param obj a pointer to the Object
+ * @param size the new size, if outside of the [1,6] interval, the pen size defaults to 1
  */
 void vtSetPenSize(VTObj *obj, unsigned short size);
 
 /**
- * Sets @c{*obj}'s pen glyph to the value of @c penChar.
- * @param obj a pointer to the affected Object
- * @param penChar (@func{vtChar}) the value you want to set
+ * Sets @c{*obj}'s pen character to @c penChar.
+ * @param obj a pointer to the Object
+ * @param penChar (@func{vtChar}) the new value
  */
-void vtSetPenGlyph(VTObj *obj, VTChar penChar);
+void vtSetPenChar(VTObj *obj, VTChar penChar);
+
+//----MOVEMENT----
 
 /**
  * Gets @c{*obj}'s @b x position.
- * @param obj a pointer to the processed Object
+ * @param obj a pointer to the Object
  * @return The @b x position of the Object.
  */
 int vtXPosition(VTObj const *obj);
 
 /**
- * Gets @c{*obj}'s @b x position.
- * @param obj obj a pointer to the processed Object
- * @return The @b x position of the Object.
+ * Gets @c{*obj}'s @b y position.
+ * @param obj a pointer to the Object
+ * @return The @b y position of the Object.
  */
 int vtYPosition(VTObj const *obj);
 
 /**
- * Moves @c *obj to @c x and @c y. The movement will leave a pen trail on the @c *canvas, if specified.
+ * Moves @c *obj to the @c{x};@c{y} position. The movement will leave a pen trail on the @c *canvas, if @c !=VTMV.
  * @param canvas @e{nullable}: a pointer to the Object the pen will draw onto, usually the canvas
- * @param obj a pointer to the affected Object
+ * @param obj a pointer to the Object
  * @param x the target @b x coordinate
  * @param y the target @b y coordinate
  */
@@ -545,7 +588,7 @@ void vtGotoXY(VTObj const *canvas, VTObj *obj, int x, int y);
 /**
  * Moves @c *obj to @c x. The movement will leave a pen trail on the @c *canvas, if specified.
  * @param canvas @e{nullable}: a pointer to the Object the pen will draw onto, usually the canvas
- * @param obj a pointer to the affected Object
+ * @param obj a pointer to the Object
  * @param x the target @b x coordinate
  */
 void vtGotoX(VTObj const *canvas, VTObj *obj, int x);
@@ -553,7 +596,7 @@ void vtGotoX(VTObj const *canvas, VTObj *obj, int x);
 /**
  * Moves @c *obj to @c y. The movement will leave a pen trail on the @c *canvas, if specified.
  * @param canvas @e{nullable}: a pointer to the Object the pen will draw onto, usually the canvas
- * @param obj a pointer to the affected Object
+ * @param obj a pointer to the Object
  * @param y the target @b y coordinate
  */
 void vtGotoY(VTObj const *canvas, VTObj *obj, int y);
@@ -561,7 +604,7 @@ void vtGotoY(VTObj const *canvas, VTObj *obj, int y);
 /**
  * Changes @c{*obj}'s @b x position by @c x. The movement will leave a pen trail on the @c *canvas, if specified.
  * @param canvas @e{nullable}: a pointer to the Object the pen will draw onto, usually the canvas
- * @param obj a pointer to the affected Object
+ * @param obj a pointer to the Object
  * @param x the @b x coordinate shift
  */
 void vtChangeX(VTObj const *canvas, VTObj *obj, int x);
@@ -569,18 +612,19 @@ void vtChangeX(VTObj const *canvas, VTObj *obj, int x);
 /**
  * Changes @c{*obj}'s @b y position by @c y. The movement will leave a pen trail on the @c *canvas, if specified.
  * @param canvas @e{nullable}: a pointer to the Object the pen will draw onto, usually the canvas
- * @param obj a pointer to the affected Object
+ * @param obj a pointer to the Object
  * @param y the @b y coordinate shift
  */
 void vtChangeY(VTObj const *canvas, VTObj *obj, int y);
 
 /**
  * Modifies @c{*obj}'s coordinates so that the specified @c position matches with the Object position.
- * @param obj a pointer to the affected Object
- * @param direction how to align the Object, see @enum{VTAlign}
+ * @param obj a pointer to the Object
+ * @param direction how to align the Object, see @enum{VTDirection}
  */
 void vtAlign(VTObj *obj, VTDirection direction);
 
+//----SENSORS----
 
 /**
  * Detects if @c *obj is overlapping any of the Objects referenced in @c objs.

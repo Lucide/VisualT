@@ -4,8 +4,6 @@ include(utils)
 #=============================
 # Configuration
 #=============================
-set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS YES)
-
 set(sources "visualt.c")
 
 set(private_headers_dirs
@@ -56,6 +54,15 @@ if(NOT VisualT_ASSUME_LITTLE_ENDIAN)
         target_compile_definitions(VisualT_library
                                    PRIVATE VISUALT_BIG_ENDIAN)
     endif()
+endif()
+get_target_property(library_type VisualT_library TYPE)
+if(library_type STREQUAL "SHARED_LIBRARY")
+    set_target_properties(VisualT_library PROPERTIES
+                          WINDOWS_EXPORT_ALL_SYMBOLS YES)
+else()
+    set_target_properties(VisualT_library PROPERTIES
+                          C_VISIBILITY_PRESET hidden
+                          VISIBILITY_INLINES_HIDDEN YES)
 endif()
 
 #=============================

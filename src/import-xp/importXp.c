@@ -7,7 +7,7 @@ extern int loadXp(Obj *obj, VTXpLoadMode loadMode, FILE *const restrict *xpFiles
 extern int loadDictionary(FILE *mapFile);
 extern void freeDictionary();
 
-int vtInitializeXp(Obj *const obj, VTXpLoadMode const loadMode, FILE *const restrict mapFile, FILE *const restrict *const files, unsigned int const filesLength) {
+int vtInitializeXp(Obj *const obj, VTXpLoadMode const loadMode, FILE *const restrict mapFile, unsigned int const filesLength, FILE *const restrict *const files) {
 	assert(obj);
 	assert(mapFile);
 	assert(files);
@@ -16,6 +16,9 @@ int vtInitializeXp(Obj *const obj, VTXpLoadMode const loadMode, FILE *const rest
 
 	int error = false;
 	if(loadDictionary(mapFile) < 0) {
+		for(int i = 0; i < filesLength; ++i) {
+			fclose(files[i])
+		}
 		flagErrorAndGoto(error);
 	}
 	if(loadXp(obj, loadMode, files, filesLength) < 0) {

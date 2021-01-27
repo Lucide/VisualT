@@ -51,25 +51,19 @@ static void initializeGlyphMapString(GlyphMap *const sprite, uint8_t const *cons
 				++i;
 				break;
 			}
-			if(utf8Text[i] == '\v') { //1B empty
+			if(utf8Text[i] == '\v') {         //1B empty
 				++i;
-				continue;
-			}
-			uint8_t *const bytes = (uint8_t *)&sprite->chars[x+y*spriteWidth];
-			if(utf8Text[i] <= 0x7F) {         //1B code point: 0xxx xxxx
-				bytes[0] = utf8Text[i++];
+			} else if(utf8Text[i] <= 0x7F) {  //1B code point: 0xxx xxxx
+				sprite->chars[x+y*spriteWidth] = (uint8_t)utf8Text[i++];
 			} else if(utf8Text[i] <= 0xDF) {  //2B code point: 110x xxxx
-				bytes[0] = utf8Text[i++];
-				bytes[1] = utf8Text[i++];
+				memcpy(&sprite->chars[x+y*spriteWidth], &utf8Text[i], 2*sizeof(uint8_t));
+				i += 2;
 			} else if(utf8Text[i] <= 0xEF) {  //3B code point: 1110 xxxx
-				bytes[0] = utf8Text[i++];
-				bytes[1] = utf8Text[i++];
-				bytes[2] = utf8Text[i++];
+				memcpy(&sprite->chars[x+y*spriteWidth], &utf8Text[i], 3*sizeof(uint8_t));
+				i += 3;
 			} else {                          //4B code point: 1111 0xxx
-				bytes[0] = utf8Text[i++];
-				bytes[1] = utf8Text[i++];
-				bytes[2] = utf8Text[i++];
-				bytes[3] = utf8Text[i++];
+				memcpy(&sprite->chars[x+y*spriteWidth], &utf8Text[i], 4*sizeof(uint8_t));
+				i += 4;
 			}
 		}
 	}
@@ -347,7 +341,7 @@ static void line(GlyphMap const *const canvas, unsigned short const penSize, VTC
 	freeMap(&stroke);
 }
 
-//----MISC----
+//----MISCELLANEOUS----
 void vtAbout(void) {
 	puts("                 .:Visual T:.\n"
 			 "           ver " VISUALT_VERSION "  " __DATE__
@@ -387,7 +381,7 @@ VTChar vtChar(char const *const ltChar) {
 	return vtChar;
 }
 
-//----INITIALIZATION----
+//----INITIALIZERS, RELEASERS AND REALLOCATORS----
 void vtInitializeBlank(Obj *const obj, unsigned int const sizesLength, VTSizes const sizes) {
 	assert(obj);
 	assert(sizesLength > 0);
@@ -537,7 +531,7 @@ void vtResize(Obj *const obj, unsigned int const width, unsigned int const heigh
 	clearMap(Glyphs, obj->activeSprite);
 }
 
-//----REFRESH----
+//----DRAWING----
 void vtRender(Obj const *const canvas, unsigned int const objsLength, VTObjs const objs) {
 	assert(canvas);
 	assert(objsLength > 0);
@@ -554,90 +548,11 @@ void vtStamp(Obj const *const canvas, unsigned int const objsLength, VTObjs cons
 	render(canvas->activeSprite, objsLength, objs, false);
 }
 
-void vtPrint(Obj const *const obj, bool const border) {
-	assert(obj);
-
-	printGlyphMap(obj->activeSprite, border);
-}
-
-size_t vtPrintToString(Obj const *const obj, bool const border, uint8_t **const utf8Buffer) {
-	assert(obj);
-	assert(utf8Buffer);
-
-	return stringifyGlyphMap(obj->activeSprite, border, utf8Buffer);
-}
-
-size_t vtPrintStringSize(Obj const *obj, bool border) {
-	assert(obj);
-
-	return stringifiedGlyphMapSize(obj->activeSprite, border);
-}
-
-//----SPRITE----
-unsigned int vtSprites(Obj const *const obj) {
-	assert(obj);
-
-	return obj->length;
-}
-
-unsigned int vtSpriteInd(Obj const *const obj) {
-	assert(obj);
-
-	return (unsigned int)(obj->activeSprite-obj->sprites);
-}
-
-void vtNextSprite(Obj *const obj) {
-	assert(obj);
-
-	obj->activeSprite = &(obj->sprites[(obj->activeSprite-obj->sprites+1)%obj->length]);
-}
-
-void vtPrecSprite(Obj *const obj) {
-	assert(obj);
-
-	obj->activeSprite = &(obj->sprites[(obj->activeSprite-obj->sprites+obj->length-1)%obj->length]);
-}
-
-void vtSetSprite(Obj *obj, unsigned int const index) {
-	assert(obj);
-	assert(index < obj->length);
-
-	obj->activeSprite = &obj->sprites[index];
-}
-
-int vtWidth(Obj const *const obj) {
-	assert(obj);
-
-	return obj->activeSprite->width;
-}
-
-int vtHeight(Obj const *const obj) {
-	assert(obj);
-
-	return obj->activeSprite->height;
-}
-
-int vtExtremum(Obj const *const obj, VTDirection const direction) {
-	int const width = obj->activeSprite->width, height = obj->activeSprite->height;
-	switch(direction) {
-		default:
-			return 0;
-		case VT_LEFT:
-			return -width/2;
-		case VT_RIGHT:
-			return width-width/2-1;
-		case VT_TOP:
-			return height/2;
-		case VT_BOTTOM:
-			return -height+height/2+1;
-	}
-}
-
-void vtSetText(Obj *const obj, bool fitToContent, VTStr const utf8String) {
+void vtSetText(Obj *const obj, VTSetTextMode mode, VTStr const utf8String) {
 	assert(obj);
 	assert(utf8String);
 
-	if(fitToContent) {
+	if(mode == VTFIT) {
 		freeMap(obj->activeSprite);
 		initializeGlyphMapString(obj->activeSprite, utf8String);
 	} else {
@@ -652,23 +567,19 @@ void vtSetText(Obj *const obj, bool fitToContent, VTStr const utf8String) {
 				continue;
 			}
 			VTChar t = 0;
-			uint8_t *const bytes = (uint8_t *)&t;
-			if(utf8String[0] == '\v') {         //1B empty
+			if(utf8String[i] == '\v') {         //1B empty
 				++i;
-			} else if(utf8String[0] <= 0x7F) {  //1B code point: 0xxx xxxx
-				bytes[0] = utf8String[i++];
-			} else if(utf8String[0] <= 0xDF) {  //2B code point: 110x xxxx
-				bytes[0] = utf8String[i++];
-				bytes[1] = utf8String[i++];
-			} else if(utf8String[0] <= 0xEF) {  //3B code point: 1110 xxxx
-				bytes[0] = utf8String[i++];
-				bytes[1] = utf8String[i++];
-				bytes[2] = utf8String[i++];
+			} else if(utf8String[i] <= 0x7F) {  //1B code point: 0xxx xxxx
+				t = (uint8_t)utf8String[i++];
+			} else if(utf8String[i] <= 0xDF) {  //2B code point: 110x xxxx
+				memcpy(&t, &utf8String[i], 2*sizeof(uint8_t));
+				i += 2;
+			} else if(utf8String[i] <= 0xEF) {  //3B code point: 1110 xxxx
+				memcpy(&t, &utf8String[i], 3*sizeof(uint8_t));
+				i += 3;
 			} else {                            //4B code point: 1111 0xxx
-				bytes[0] = utf8String[i++];
-				bytes[1] = utf8String[i++];
-				bytes[2] = utf8String[i++];
-				bytes[3] = utf8String[i++];
+				memcpy(&t, &utf8String[i], 4*sizeof(uint8_t));
+				i += 4;
 			}
 			if(x < sprite->width && y < sprite->height) {
 				sprite->chars[x+y*sprite->width] = t;
@@ -716,7 +627,7 @@ void vtShift(Obj const *const obj, VTDirection direction, int amount) {
 	GlyphMap const *const sprite = obj->activeSprite;
 	switch(direction) {
 		default:
-		case VT_LEFT:
+		case VTLEFT:
 			for(int y = 0; y < sprite->height; ++y) {
 				int x = 0;
 				for(; x+amount < sprite->width; ++x) {
@@ -727,7 +638,7 @@ void vtShift(Obj const *const obj, VTDirection direction, int amount) {
 				}
 			}
 			break;
-		case VT_RIGHT:
+		case VTRIGHT:
 			for(int y = 0; y < sprite->height; ++y) {
 				int x = sprite->width-1;
 				for(; x-amount >= 0; x--) {
@@ -738,7 +649,7 @@ void vtShift(Obj const *const obj, VTDirection direction, int amount) {
 				}
 			}
 			break;
-		case VT_TOP:
+		case VTTOP:
 			for(int x = 0; x < sprite->width; ++x) {
 				int y = 0;
 				for(; y+amount < sprite->height; ++y) {
@@ -749,7 +660,7 @@ void vtShift(Obj const *const obj, VTDirection direction, int amount) {
 				}
 			}
 			break;
-		case VT_BOTTOM:
+		case VTBOTTOM:
 			for(int x = 0; x < sprite->width; ++x) {
 				int y = sprite->height-1;
 				for(; y-amount >= 0; y--) {
@@ -779,7 +690,7 @@ void vtRotate(Obj const *const obj, VTDirection direction, int amount) {
 	}
 	switch(direction) {
 		default:
-		case VT_LEFT:
+		case VTLEFT:
 			for(int y = 0; y < sprite->height; ++y) {
 				for(int k = 0; k < amount; ++k) {
 					int x = 0;
@@ -791,7 +702,7 @@ void vtRotate(Obj const *const obj, VTDirection direction, int amount) {
 				}
 			}
 			break;
-		case VT_RIGHT:
+		case VTRIGHT:
 			for(int y = 0; y < sprite->height; ++y) {
 				for(int k = 0; k < amount; ++k) {
 					int x = sprite->width-1;
@@ -803,7 +714,7 @@ void vtRotate(Obj const *const obj, VTDirection direction, int amount) {
 				}
 			}
 			break;
-		case VT_TOP:
+		case VTTOP:
 			for(int x = 0; x < sprite->width; ++x) {
 				for(int k = 0; k < amount; ++k) {
 					int y = 0;
@@ -815,7 +726,7 @@ void vtRotate(Obj const *const obj, VTDirection direction, int amount) {
 				}
 			}
 			break;
-		case VT_BOTTOM:
+		case VTBOTTOM:
 			for(int x = 0; x < sprite->width; ++x) {
 				for(int k = 0; k < amount; ++k) {
 					int y = sprite->height-1;
@@ -885,7 +796,87 @@ void vtDrawAxes(Obj const *obj) {
 	chars[centerX+centerY*width] = '0';
 }
 
-//----OBJ----
+//----PRINTERS----
+void vtPrint(Obj const *const obj, bool const border) {
+	assert(obj);
+
+	printGlyphMap(obj->activeSprite, border);
+}
+
+size_t vtPrintToString(Obj const *const obj, bool const border, uint8_t **const utf8Buffer) {
+	assert(obj);
+	assert(utf8Buffer);
+
+	return stringifyGlyphMap(obj->activeSprite, border, utf8Buffer);
+}
+
+size_t vtPrintStringSize(Obj const *obj, bool border) {
+	assert(obj);
+
+	return stringifiedGlyphMapSize(obj->activeSprite, border);
+}
+
+//----SPRITE OPERATIONS----
+unsigned int vtSprites(Obj const *const obj) {
+	assert(obj);
+
+	return obj->length;
+}
+
+unsigned int vtSpriteInd(Obj const *const obj) {
+	assert(obj);
+
+	return (unsigned int)(obj->activeSprite-obj->sprites);
+}
+
+void vtNextSprite(Obj *const obj) {
+	assert(obj);
+
+	obj->activeSprite = &(obj->sprites[(obj->activeSprite-obj->sprites+1)%obj->length]);
+}
+
+void vtPrecSprite(Obj *const obj) {
+	assert(obj);
+
+	obj->activeSprite = &(obj->sprites[(obj->activeSprite-obj->sprites+obj->length-1)%obj->length]);
+}
+
+void vtSetSprite(Obj *obj, unsigned int const index) {
+	assert(obj);
+	assert(index < obj->length);
+
+	obj->activeSprite = &obj->sprites[index];
+}
+
+int vtWidth(Obj const *const obj) {
+	assert(obj);
+
+	return obj->activeSprite->width;
+}
+
+int vtHeight(Obj const *const obj) {
+	assert(obj);
+
+	return obj->activeSprite->height;
+}
+
+int vtExtremum(Obj const *const obj, VTDirection const direction) {
+	int const width = obj->activeSprite->width, height = obj->activeSprite->height;
+	switch(direction) {
+		default:
+			return 0;
+		case VTLEFT:
+			return -width/2;
+		case VTRIGHT:
+			return width-width/2-1;
+		case VTTOP:
+			return height/2;
+		case VTBOTTOM:
+			return -height+height/2+1;
+	}
+}
+
+//----OBJECT OPERATIONS----
 bool vtVisible(Obj const *const obj) {
 	assert(obj);
 	return obj->visible;
@@ -947,8 +938,8 @@ size_t vtSerializedArraySize(Obj const *const obj) {
 	return (size_t)length*sizeof(VTChar);
 }
 
-//----PEN----
-VTChar vtPenGlyph(Obj const *obj) {
+//----PEN OPERATIONS----
+VTChar vtPenChar(Obj const *obj) {
 	assert(obj);
 	return obj->penChar;
 }
@@ -963,12 +954,12 @@ void vtSetPenSize(Obj *const obj, unsigned short const size) {
 	obj->penSize = (size >= 1 && size <= 6) ? size : (unsigned short)1;
 }
 
-void vtSetPenGlyph(Obj *obj, VTChar penChar) {
+void vtSetPenChar(Obj *obj, VTChar penChar) {
 	assert(obj);
 	obj->penChar = penChar;
 }
 
-//----MOVE----
+//----MOVEMENT----
 int vtXPosition(Obj const *const obj) {
 	assert(obj);
 	return obj->x;
@@ -1028,16 +1019,16 @@ void vtChangeY(Obj const *const canvas, Obj *const obj, int const y) {
 void vtAlign(Obj *const obj, VTDirection const direction) {
 	assert(obj);
 	int const centerX = obj->activeSprite->width/2, centerY = obj->activeSprite->height/2;
-	if(direction&VT_TOP) {
+	if(direction&VTTOP) {
 		obj->y -= centerY;
 	}
-	if(direction&VT_BOTTOM) {
+	if(direction&VTBOTTOM) {
 		obj->y += obj->activeSprite->height-centerY-1;
 	}
-	if(direction&VT_LEFT) {
+	if(direction&VTLEFT) {
 		obj->x += centerX;
 	}
-	if(direction&VT_RIGHT) {
+	if(direction&VTRIGHT) {
 		obj->x -= obj->activeSprite->width-centerX-1;
 	}
 }

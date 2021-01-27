@@ -49,8 +49,8 @@ double estimateMaxSpeed(void) {
 }
 
 void generateTerrain(int distance) {
-	vtShift(terrain, VT_LEFT, distance);
-	for(int x = vtExtremum(terrain, VT_RIGHT)-distance+1; x <= vtExtremum(terrain, VT_RIGHT); ++x) {
+	vtShift(terrain, VTLEFT, distance);
+	for(int x = vtExtremum(terrain, VTRIGHT)-distance+1; x <= vtExtremum(terrain, VTRIGHT); ++x) {
 		switch(as.terrainState) {
 			default:
 			case 0://high
@@ -81,7 +81,7 @@ void backgroundAnimation() {
 	if(unitShift(xVelocity) >= 1 && shift < 1) {
 		shift = 1;
 	}
-	vtRotate(background, VT_LEFT, shift);
+	vtRotate(background, VTLEFT, shift);
 }
 
 void carAnimation(void) {

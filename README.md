@@ -6,9 +6,9 @@ The idea is to recreate an environment similar to [Scratch](https://scratch.mit.
 
 **Short-term goals:**
 
-* [ ] documentation
-  * [ ] comprehensive build and install instructions
-  * [ ] import xp module
+* [x] documentation
+  * [x] comprehensive build and install instructions
+  * [x] import xp module
 
 **Medium-term goals**
 
