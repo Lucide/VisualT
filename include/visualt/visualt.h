@@ -293,9 +293,9 @@ void vtStamp(VTObj const *canvas, unsigned int objsLength, VTObjs objs);
 
 /**
  * Sets @c{*obj}'s active Sprite content to @c utf8String.
- * - In @macro{VTFIT} mode, the Sprite will be resized (thus @e reallocated) to fit the content in @c utf8String.
- * - In @macro{VTCROP} mode, everything that goes outside the active Sprite is instead dropped. The parsing is done the same
- * as in @func{vtInitializeStrings}.
+ * - In @enum{VTFIT} mode, the Sprite will be resized (thus @e reallocated) to fit the content in @c utf8String.
+ * - In @enum{VTCROP} mode, everything that goes outside the active Sprite is instead dropped. The parsing is done the
+ * same as in @func{vtInitializeStrings}.
  *
  * @code
  * vtSetText(&obj, LTSTR "A\vKaomoji\n\v(o˘◡˘o)");
