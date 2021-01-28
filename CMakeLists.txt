@@ -15,6 +15,9 @@ if(NOT isMultiConfig)
     if(NOT CMAKE_BUILD_TYPE IN_LIST allowedBuildTypes)
         message(FATAL_ERROR "Unknown build type: ${CMAKE_BUILD_TYPE}")
     endif()
+else()
+    # set for Hunter packages
+    set(CMAKE_BUILD_TYPE Release)
 endif()
 #=============================
 # Hunter-related setup

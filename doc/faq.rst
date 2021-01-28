@@ -24,6 +24,3 @@ Some Objects are not drawn, despite being marked as visible, I checked!
 
 That happens often enough that deserves its own faq entry: check the length parameter in the function calls. Probably it's just C being C 🙂.
 
-Who is simba?
-=============
-

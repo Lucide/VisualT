@@ -13,6 +13,8 @@ CMake specs
 
 .. [1] If the respective conditions are met.
 
+.. note:: Hunter packages are built at configure time. When using a multi-config generator, they will default to Release.
+
 Options
 *******
 
