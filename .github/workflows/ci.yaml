@@ -43,7 +43,7 @@ jobs:
           # Set the build directory, i.e. where CMake generates the build system files. Defaults to `$(Build.ArtifactStagingDirectory)` for CMakeLists.txt, and to `$(Build.ArtifactStagingDirectory)/<configuration-name>` for CMakeSettings.json. Used by any mode.
           buildDirectory: '${{ github.workspace }}/cmake-build-release'
           # Provides a mean to provide all the CMake arguments. This is required when using CMakeLists.txt in Advanced mode. For CMakeSettings.json, the arguments are already inferred, but you can append your arguments providing them here.  Used by CMakeListsTxtAdvanced and CMakeSettingsJson modes.
-          # cmakeAppendedArgs: # optional, default is ""
+          cmakeAppendedArgs: -D VisualT_ASSUME_LITTLE_ENDIAN:BOOL=YES # optional, default is ""
           # Additional parameters for both CMake and the make program (e.g. ninja or make).  Separate CMake arguments to the native make program arguments with '--', such as: '--clean-first --config Debug -- -j0'. Used by both CMakeListsTxtBasic and CMakeListsTxtAdvanced modes
           buildWithCMakeArgs: --target VisualT_library VisualT_sphinx_generate_html
 
