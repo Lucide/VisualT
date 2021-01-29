@@ -19,7 +19,7 @@ jobs:
 
       - name: skip-workflow
         id: skip-workflow # id used for referencing step
-        uses: saulmaldonado/skip-workflow@v1
+        uses: saulmaldonado/skip-workflow@v1.1.0
         with:
           phrase: '#noci'
           github-token: ${{ secrets.GITHUB_TOKEN }}
