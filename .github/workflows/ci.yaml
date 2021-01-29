@@ -7,7 +7,27 @@ on:
     branches: [ master ]
 
 jobs:
+
+  skip-workflow:
+    runs-on: ubuntu-latest
+
+    outputs:
+      skip: ${{ steps.skip-workflow.outputs.skip }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: skip-workflow
+        id: skip-workflow # id used for referencing step
+        uses: saulmaldonado/skip-workflow@v1
+        with:
+          phrase: '#noci'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
   build:
+    needs: skip-workflow
+    if: ${{ !needs.skip-workflow.outputs.skip }}
+
     runs-on: ubuntu-latest
 
     steps:
