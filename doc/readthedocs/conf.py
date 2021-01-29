@@ -10,5 +10,5 @@ import sys
 
 subprocess.check_call(["cmake -D VisualT_ASSUME_LITTLE_ENDIAN:BOOL=YES -S . -B build"], cwd="../..", shell=True)
 subprocess.check_call(["cmake --build build --target VisualT_doxygen_generate_xml"], cwd="../..", shell=True)
-with open("../conf.py") as infile:
+with open("../../build/doc/conf.py") as infile:
     exec(infile.read())
