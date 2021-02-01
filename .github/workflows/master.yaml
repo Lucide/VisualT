@@ -48,7 +48,7 @@ jobs:
         uses: lukka/get-cmake@latest
 
       - name: Run CMake+Ninja
-        uses: lukka/run-cmake@v3.2
+        uses: lukka/run-cmake@v3
         with:
           # Select the mode of the action. There are three different modes: CMakeListsTxtBasic: Run CMake using a CMakeLists.txt - Basic configuration, CMakeListsTxtAdvanced: Run CMake using a CMakeLists.txt - Advanced configuration, CMakeSettingsJson: Run CMake using a CMakeSettings.json of Visual Studio.
           cmakeListsOrSettingsJson: CMakeListsTxtAdvanced

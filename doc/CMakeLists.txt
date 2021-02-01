@@ -3,7 +3,11 @@ include(utils)
 #=============================
 # Dependencies
 #=============================
-find_package(Doxygen REQUIRED)
+find_package(Doxygen)
+if(NOT Doxygen_FOUND)
+    return()
+endif()
+
 set(VisualT_PYTHON_VENV "" CACHE PATH "If the python dependencies are installed in a virtual environment, set the path here.")
 relativify_path(VisualT_PYTHON_VENV)
 list(APPEND CMAKE_PREFIX_PATH ${VisualT_PYTHON_VENV})
