@@ -70,5 +70,4 @@ jobs:
       - uses: joelwmale/webhook-action@aed4f319dce44a4f73cdf0480b94df9e6dfc6cae
         with:
           url: https://readthedocs.org/api/v2/webhook/visualt/145607/
-#          headers: '{"Content-Type": "application/json"}'
           body: '{"token": "${{ secrets.READTHEDOCS }}"}'

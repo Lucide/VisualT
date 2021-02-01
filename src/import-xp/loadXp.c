@@ -219,17 +219,8 @@ int loadXp(Obj *const obj, VTXpLoadMode const loadMode, FILE *const restrict *co
 			if(obj->sprites) {
 				free(obj->sprites);
 			}
-			break;
+			return -1;
 		}
-	}
-	// close original files
-	for(unsigned int i = 0; i < filesLength; ++i) {
-		if(fclose(xpFiles[i]) == EOF) {
-			error = true;
-		}
-	}
-	if(error) {
-		return -1;
 	}
 	return 0;
 }

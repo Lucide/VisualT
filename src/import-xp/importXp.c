@@ -16,10 +16,7 @@ int vtInitializeXp(Obj *const obj, VTXpLoadMode const loadMode, FILE *const rest
 
 	int error = false;
 	if(loadDictionary(mapFile) < 0) {
-		for(int i = 0; i < filesLength; ++i) {
-			fclose(files[i])
-		}
-		flagErrorAndGoto(error);
+		flagErrorAndGoto(closeFiles);
 	}
 	if(loadXp(obj, loadMode, files, filesLength) < 0) {
 		flagErrorAndGoto(freeDictionary);
@@ -27,8 +24,13 @@ int vtInitializeXp(Obj *const obj, VTXpLoadMode const loadMode, FILE *const rest
 	initializeObj(obj);
 	freeDictionary:
 	freeDictionary();
+	closeFiles:
+	for(unsigned int i = 0; i < filesLength; ++i) {
+		if(fclose(xpFiles[i]) == EOF) {
+			error = true;
+		}
+	}
 	if(error) {
-		error:
 		return -1;
 	}
 	return 0;
