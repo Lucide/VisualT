@@ -1,4 +1,4 @@
-name: ci
+name: VisualT-master
 on:
   workflow_dispatch:
   push:
@@ -8,26 +8,62 @@ on:
 
 jobs:
 
-  skip-workflow:
+  skipped:
     runs-on: ubuntu-latest
 
     outputs:
-      skip: ${{ steps.skip-workflow.outputs.skip }}
+      ci: ${{ steps.ci.outputs.skip }}
+      docs: ${{ steps.docs.outputs.skip }}
+      build: ${{ steps.build.outputs.skip }}
+
+    steps:
+      - id: ci
+        uses: saulmaldonado/skip-workflow@1.1.0
+        with:
+          phrase: '#no-ci'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: docs
+        uses: saulmaldonado/skip-workflow@1.1.0
+        with:
+          phrase: '#no-docs'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: build
+        uses: saulmaldonado/skip-workflow@1.1.0
+        with:
+          phrase: '#no-build'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  build:
+    needs: skipped
+    if: ${{ !needs.skipped.outputs.ci && !needs.skipped.outputs.build}}
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: skip-workflow
-        id: skip-workflow # id used for referencing step
-        uses: saulmaldonado/skip-workflow@v1.1.0
+      - name: Setup CMake and ninja
+        # Using 'latest' branch, the latest CMake and ninja are installed.
+        uses: lukka/get-cmake@latest
+
+      - name: Run CMake+Ninja
+        uses: lukka/run-cmake@v3.2
         with:
-          phrase: '#noci'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Select the mode of the action. There are three different modes: CMakeListsTxtBasic: Run CMake using a CMakeLists.txt - Basic configuration, CMakeListsTxtAdvanced: Run CMake using a CMakeLists.txt - Advanced configuration, CMakeSettingsJson: Run CMake using a CMakeSettings.json of Visual Studio.
+          cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
+          # Select the build configuration, typically Debug or Release. Used by CMakeListsTxtBasic mode.
+          cmakeBuildType: Release
+          # Set the build directory, i.e. where CMake generates the build system files. Defaults to `$(Build.ArtifactStagingDirectory)` for CMakeLists.txt, and to `$(Build.ArtifactStagingDirectory)/<configuration-name>` for CMakeSettings.json. Used by any mode.
+          buildDirectory: '${{ github.workspace }}/cmake-build-release'
+          # Provides a mean to provide all the CMake arguments. This is required when using CMakeLists.txt in Advanced mode. For CMakeSettings.json, the arguments are already inferred, but you can append your arguments providing them here.  Used by CMakeListsTxtAdvanced and CMakeSettingsJson modes.
+          cmakeAppendedArgs: -D VisualT_XP_IMPORTER:BOOL=YES
+          # Additional parameters for both CMake and the make program (e.g. ninja or make).  Separate CMake arguments to the native make program arguments with '--', such as: '--clean-first --config Debug -- -j0'. Used by both CMakeListsTxtBasic and CMakeListsTxtAdvanced modes
+          buildWithCMakeArgs: --target VisualT_library
 
-  build:
-    needs: skip-workflow
-    if: ${{ !needs.skip-workflow.outputs.skip }}
-
+  docs:
+    needs: skipped
+    if: ${{ !needs.skipped.outputs.ci && !needs.skipped.outputs.docs}}
     runs-on: ubuntu-latest
 
     steps:
@@ -65,7 +101,7 @@ jobs:
           # Provides a mean to provide all the CMake arguments. This is required when using CMakeLists.txt in Advanced mode. For CMakeSettings.json, the arguments are already inferred, but you can append your arguments providing them here.  Used by CMakeListsTxtAdvanced and CMakeSettingsJson modes.
           cmakeAppendedArgs: -D VisualT_ASSUME_LITTLE_ENDIAN:BOOL=YES # optional, default is ""
           # Additional parameters for both CMake and the make program (e.g. ninja or make).  Separate CMake arguments to the native make program arguments with '--', such as: '--clean-first --config Debug -- -j0'. Used by both CMakeListsTxtBasic and CMakeListsTxtAdvanced modes
-          buildWithCMakeArgs: --target VisualT_library VisualT_sphinx_generate_html
+          buildWithCMakeArgs: --target VisualT_sphinx_generate_html
 
       - name: Publish documentation
         uses: peaceiris/actions-gh-pages@v3

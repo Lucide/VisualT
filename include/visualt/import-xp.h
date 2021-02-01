@@ -39,7 +39,7 @@ typedef enum VTXpLoadMode {
  * @param loadMode selects the conversion mode
  * @param mapFile a pointer to the @e{charset file} that will be used to map tiles indices to their corresponding
  * character
- * @param filesLength the length of @c files. In @enum{VT_XP_LAYERS} mode must be 1.
+ * @param filesLength the length of @c files. In @enumerator{VT_XP_LAYERS} mode must be 1.
  * @param files an array of pointers to .xp files
  * @return A value < 0 if the operation failed. An attempt is always made to close @c mapFile and all @c files, even in
  * case of failure, where @c{*obj} is left uninitialized.
