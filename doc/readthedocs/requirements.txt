@@ -1,2 +1,3 @@
 cmake==3.17.3
+pyrocopy==0.8.0
 -r ../../requirements.txt
