@@ -26,7 +26,7 @@ int vtInitializeXp(Obj *const obj, VTXpLoadMode const loadMode, FILE *const rest
 	freeDictionary();
 	closeFiles:
 	for(unsigned int i = 0; i < filesLength; ++i) {
-		if(fclose(xpFiles[i]) == EOF) {
+		if(fclose(files[i]) == EOF) {
 			error = true;
 		}
 	}

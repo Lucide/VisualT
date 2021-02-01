@@ -59,7 +59,7 @@ jobs:
           # Provides a mean to provide all the CMake arguments. This is required when using CMakeLists.txt in Advanced mode. For CMakeSettings.json, the arguments are already inferred, but you can append your arguments providing them here.  Used by CMakeListsTxtAdvanced and CMakeSettingsJson modes.
           cmakeAppendedArgs: -D VisualT_XP_IMPORTER:BOOL=YES
           # Additional parameters for both CMake and the make program (e.g. ninja or make).  Separate CMake arguments to the native make program arguments with '--', such as: '--clean-first --config Debug -- -j0'. Used by both CMakeListsTxtBasic and CMakeListsTxtAdvanced modes
-#          buildWithCMakeArgs:
+          # buildWithCMakeArgs:
 
   docs:
     needs: check-skips

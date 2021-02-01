@@ -2,6 +2,7 @@
 
 #ifdef VISUALT_IMPORT_XP
 	#include "visualt/import-xp.h"
+
 #endif
 #include <stdio.h>
 #include <stdlib.h>
@@ -389,6 +390,7 @@ void serializationTest(void) {
 }
 
 #ifdef VISUALT_IMPORT_XP
+
 void xpImportTest(void) {
 	puts("xp import test:");
 
@@ -397,7 +399,7 @@ void xpImportTest(void) {
 		VTObj obj;
 		FILE *const file = fopen("assets/object-sprite.xp", "rb");
 		FILE *const map = fopen("assets/utf8.txt", "r");
-		vtInitializeXp(&obj, VT_XP_LAYERS, map, &file, 1);
+		vtInitializeXp(&obj, VT_XP_LAYERS, map, 1, &file);
 		for(unsigned int i = 0; i < vtSprites(&obj); ++i) {
 			vtPrint(&obj, true);
 			vtNextSprite(&obj);
@@ -409,16 +411,16 @@ void xpImportTest(void) {
 		FILE *const file1 = fopen("assets/object-sprite.xp", "rb");
 		FILE *const file2 = fopen("assets/VCat.xp", "rb");
 		FILE *const map = fopen("assets/utf8.txt", "r");
-		vtInitializeXp(&obj, VT_XP_FILES, map, (FILE *[]){file1, file2}, 2);
+		vtInitializeXp(&obj, VT_XP_FILES, map, 2, (FILE *[]){file1, file2});
 		for(unsigned int i = 0; i < vtSprites(&obj); ++i) {
 			vtPrint(&obj, true);
 			vtNextSprite(&obj);
 		}
 		vtRelease(1, LTOBJS{&obj});
 	}
-		puts("done");
-
+	puts("done");
 }
+
 #else
 
 void xpImportTest(void) {
