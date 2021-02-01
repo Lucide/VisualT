@@ -8,7 +8,7 @@ on:
 
 jobs:
 
-  skipped:
+  check-skips:
     runs-on: ubuntu-latest
 
     outputs:
@@ -18,26 +18,26 @@ jobs:
 
     steps:
       - id: ci
-        uses: saulmaldonado/skip-workflow@1.1.0
+        uses: saulmaldonado/skip-workflow@v1.1.0
         with:
           phrase: '#no-ci'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - id: docs
-        uses: saulmaldonado/skip-workflow@1.1.0
+        uses: saulmaldonado/skip-workflow@v1.1.0
         with:
           phrase: '#no-docs'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - id: build
-        uses: saulmaldonado/skip-workflow@1.1.0
+        uses: saulmaldonado/skip-workflow@v1.1.0
         with:
           phrase: '#no-build'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
   build:
-    needs: skipped
-    if: ${{ !needs.skipped.outputs.ci && !needs.skipped.outputs.build}}
+    needs: check-skips
+    if: ${{ !needs.check-skips.outputs.ci && !needs.check-skips.outputs.build}}
     runs-on: ubuntu-latest
 
     steps:
@@ -62,8 +62,8 @@ jobs:
           buildWithCMakeArgs: --target VisualT_library
 
   docs:
-    needs: skipped
-    if: ${{ !needs.skipped.outputs.ci && !needs.skipped.outputs.docs}}
+    needs: check-skips
+    if: ${{ !needs.check-skips.outputs.ci && !needs.check-skips.outputs.docs}}
     runs-on: ubuntu-latest
 
     steps:
