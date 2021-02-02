@@ -2,7 +2,7 @@ name: Prerelease
 on:
   push:
     tags:
-      - '*-b'
+      - 'v*-b'
 
 jobs:
   prerelease:
