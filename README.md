@@ -1,25 +1,32 @@
 # VisualT
-VisualT is a text-based graphic library written in C.\
-It originated as a personal project (v1.0), when I was in the 4th year of high school (12th grade for overseas readers), and we had been studying programming (along with the C language) the year before.
 
-The idea is to recreate an environment similar to [Scratch](https://scratch.mit.edu/ "www.scratch.mit.edu") in C, with graphic "Objects" (*Sprites in scratch*) and "Sprites" (*Costumes in scratch*). Objects are represented as `.obj` text files which can be imported or embedded directly within the source.
+<p align="center">
+  <img src="doc/images/VTCat.svg">
+</p>
+
+### VisualT is a cross-platform C library that makes creating UTF8 text-based UIs easier and faster.
+* The documentation is available on: <https://visualt.readthedocs.io/en/latest/>
+* Build instructions are available [here](https://visualt.readthedocs.io/en/latest/build/import.html).
+
+----
 
 **Short-term goals:**
 
 * [x] documentation
   * [x] comprehensive build and install instructions
   * [x] import xp module
+* [x] improve ci
+  * [x] docs on readthedocs
+  * [x] workflow flags, reduce time usage
 
 **Medium-term goals**
 
-* [ ] documentation
-  * [ ] examples
 * [ ] deliverable as a hunter package
 
 **Long-term goals:**
 
-* [ ] more meaningful tests
+* [ ] documentation
+  * [ ] examples
+* [ ] better tests
 * [ ] improve ci
-  * [ ] docs on readthedocs
-  * [ ] workflow flags, reduce time usage
   * [ ] coverage stats
