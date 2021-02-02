@@ -2,7 +2,7 @@ name: Release
 on:
   push:
     tags-ignore:
-      - 'b*'
+      - '*-b'
 
 jobs:
   prerelease:
