@@ -1,5 +1,6 @@
 set(cwd "${CMAKE_CURRENT_LIST_DIR}/../..")
 
+file(REMOVE_RECURSE "${cwd}/build")
 file(COPY "${cwd}/doc/" DESTINATION ${CMAKE_CURRENT_LIST_DIR}
      PATTERN "readthedocs" EXCLUDE)
 
