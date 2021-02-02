@@ -106,7 +106,7 @@ You can use the built-in `FetchContent <https://cmake.org/cmake/help/v3.17/modul
 
     fetchcontent_declare(VisualT
                          GIT_REPOSITORY https://github.com/Lucide/VisualT.git
-                         GIT_TAG r2.0.0)
+                         GIT_TAG v2.0.0-b)
     FetchContent_MakeAvailable(VisualT)
 
 Approach 4: external project
