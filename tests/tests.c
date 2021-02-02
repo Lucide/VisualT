@@ -159,15 +159,15 @@ void alignTest(void) {
 void drawToStringTest(void) {
 	puts("draw to string test:");
 	Obj canvas;
-	unsigned int length;
+	size_t size;
 	unsigned char *s = NULL;
 	vtInitializeStrings(&canvas, 1, LTSTRS{"𝄞𝄞𝄞\n𝄞𝄞𝄞"});
-	length = vtPrintToString(&canvas, true, &s);
-	printf("length: %d\n%s\n", length, s);
+	size = vtPrintToString(&canvas, true, &s);
+	printf("length: %zu\n%s\n", size, s);
 	free(s);
 	s = NULL;
-	length = vtPrintToString(&canvas, false, &s);
-	printf("length: %d\n%s\n", length, s);
+	size = vtPrintToString(&canvas, false, &s);
+	printf("length: %zu\n%s\n", size, s);
 	free(s);
 	s = NULL;
 

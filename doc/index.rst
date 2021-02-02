@@ -38,4 +38,4 @@ If you appreciated the work, leave a star on the `GitHub repo <https://github.co
 
 .. rubric:: VisualT's dependencies are managed by the `Hunter Package Manager <https://github.com/cpp-pm/hunter>`_:
 
-Hunter is a CMake powered package manager, which means it's completely *written* in CMake! Other than being inherently cross-patform, it offers a CMake-friendly interface for every package, which is a precious quality. It is also committed to complying with modern CMake best practices. If you're starting a new project, give it a try, and spread the word!
+Hunter is a CMake-powered package manager, it's completely *written* in CMake. Other than being inherently cross-patform, it offers a CMake-friendly interface for every available package, which is a quite valuable feature. It is also committed to complying with modern CMake best practices. If you're starting a new project, give it a try, and spread the word!

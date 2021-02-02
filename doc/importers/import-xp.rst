@@ -44,7 +44,7 @@ CMake specs
 | dependencies | VisualT_runtime             |
 +--------------+-----------------------------+
 
-See more on :doc:`/build/specs`.
+See more on :doc:`/build`.
 
 API
 ***

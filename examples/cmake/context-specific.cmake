@@ -1,5 +1,7 @@
 list(APPEND CMAKE_MODULE_PATH "${VisualT_SOURCE_DIR}/cmake")
 set(install_dir "${CMAKE_INSTALL_DATADIR}/VTExamples")
+set_property(DIRECTORY
+             PROPERTY EXCLUDE_FROM_ALL YES)
 
 #=============================
 # Installation

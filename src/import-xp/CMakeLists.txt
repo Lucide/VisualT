@@ -65,7 +65,7 @@ target_link_libraries(VisualT_import_xp PRIVATE
                       ZLIB::ZLIB)
 # disable linker warnings about missing zlib .pdb files on windows
 target_link_options(VisualT_import_xp
-                    PRIVATE "$<$<C_COMPILER_ID:MSVC>:LINKER:/ignore:4099>")
+                    PUBLIC "$<$<C_COMPILER_ID:MSVC>:LINKER:/ignore:4099>")
 set_target_properties(VisualT_import_xp PROPERTIES
                       OUTPUT_NAME importXp
                       EXPORT_NAME import_xp
