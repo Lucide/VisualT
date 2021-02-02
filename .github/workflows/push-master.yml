@@ -1,4 +1,4 @@
-name: VisualT-master
+name: push-master
 on:
   workflow_dispatch:
   push:
@@ -61,7 +61,7 @@ jobs:
           # Additional parameters for both CMake and the make program (e.g. ninja or make).  Separate CMake arguments to the native make program arguments with '--', such as: '--clean-first --config Debug -- -j0'. Used by both CMakeListsTxtBasic and CMakeListsTxtAdvanced modes
           # buildWithCMakeArgs:
 
-  docs:
+  update-docs:
     needs: check-skips
     if: ${{ !needs.check-skips.outputs.ci && !needs.check-skips.outputs.docs}}
     runs-on: ubuntu-latest
