@@ -10,21 +10,9 @@
 
 ----
 
-**Short-term goals:**
-
-* [x] documentation
-  * [x] comprehensive build and install instructions
-  * [x] import xp module
-* [x] improve ci
-  * [x] docs on readthedocs
-  * [x] workflow flags, reduce time usage
-
-**Medium-term goals**
-
-* [ ] deliverable as a hunter package
-
 **Long-term goals:**
 
+* [ ] deliverable as a hunter package
 * [ ] documentation
   * [ ] examples
 * [ ] better tests
